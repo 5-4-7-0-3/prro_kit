@@ -1,0 +1,93 @@
+{
+    "name": "robol_prro_kit",
+    "version": "0.1.0",
+    "description": "Бібліотека для генерування XML-документів PRRO/Library for generating XML documents from PRRO.",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "files": [
+        "dist/**/*"
+    ],
+    "scripts": {
+        "---------- Build & Clean -----------": "",
+        "clean": "rm -rf dist",
+        "build": "tsc",
+        "---------- Husky & Git Hooks ----------": "",
+        "prepare": "husky install",
+        "---------- Lint & Format ----------": "",
+        "lint": "eslint . --ext .ts",
+        "lint:fix": "eslint . --ext .ts --fix",
+        "format": "prettier --write \"src/**/*.ts\"",
+        "---------- Testing ----------": "",
+        "test": "jest",
+        "test:watch": "jest --watch",
+        "test:coverage": "jest --coverage",
+        "---------- Quality Checks ----------": "",
+        "check": "npm run lint && npm run test",
+        "check-package": "npm pack --dry-run",
+        "---------- Release & Publishing ----------": "",
+        "prepublishOnly": "npm run build"
+    },
+    "keywords": [
+        "PRRO",
+        "Fiscalization",
+        "XML",
+        "TypeScript",
+        "Ukraine"
+    ],
+    "author": "Robol Prro Kit Team",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/KanRobotics/robol_prro_kit"
+    },
+    "homepage": "https://github.com/KanRobotics/robol_prro_kit#readme",
+    "bugs": {
+        "url": "https://github.com/KanRobotics/robol_prro_kit/issues"
+    },
+    "engines": {
+        "node": ">=14 <23"
+    },
+    "husky": {
+        "hooks": {
+            "pre-commit": "lint-staged"
+        }
+    },
+    "lint-staged": {
+        "*.ts": [
+            "prettier --write",
+            "eslint --fix",
+            "git add"
+        ],
+        "*.{json,md}": [
+            "prettier --write",
+            "git add"
+        ]
+    },
+    "devDependencies": {
+        "@eslint/eslintrc": "^3.3.1",
+        "@eslint/js": "^9.28.0",
+        "@types/axios": "^0.9.36",
+        "@types/jest": "^29.5.14",
+        "@types/node": "^22.15.30",
+        "@typescript-eslint/eslint-plugin": "^8.33.1",
+        "@typescript-eslint/parser": "^8.33.1",
+        "axios-mock-adapter": "^1.21.2",
+        "eslint": "^9.28.0",
+        "eslint-config-prettier": "^10.1.5",
+        "eslint-plugin-prettier": "^5.4.1",
+        "globals": "^16.2.0",
+        "husky": "^8.0.3",
+        "jest": "^29.7.0",
+        "lint-staged": "^16.1.0",
+        "prettier": "^3.5.3",
+        "ts-jest": "^29.3.4",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.8.3"
+    },
+    "dependencies": {
+        "axios": "^1.9.0",
+        "dayjs": "^1.11.13",
+        "uuid": "^11.1.0",
+        "xmlbuilder2": "^3.1.1"
+    }
+}
