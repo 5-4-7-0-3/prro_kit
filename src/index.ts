@@ -1,12 +1,6 @@
-/**
- * PRRO Kit - Бібліотека для генерації XML документів PRRO
- * 
- * Основні можливості:
- * - Генерація XML документів для фіскальних операцій
- * - Підтримка онлайн та офлайн режимів
- * - Валідація даних перед генерацією XML
- * - Типобезпечний API з повною підтримкою TypeScript
- */
+import { PRROBuilder, OnlineDocumentBuilder, OfflineDocumentBuilder } from './builder';
+import { ShiftData, ValidationResult, ReceiptLine, PaymentData } from './core';
+import { PRROValidator } from './validator';
 
 // Core types and constants
 export type {
@@ -16,12 +10,17 @@ export type {
     RefundData,
     ZReportData,
     ValidationResult,
-    XMLDocumentResult
+    XMLDocumentResult,
+    DocumentType,
+    PaymentMethod,
+    DocumentSubtype
 } from './core/types';
 
 export {
     PRRO_CONSTANTS,
     DOC_TYPES,
+    DOC_SUBTYPES,
+    PAYMENT_TYPES,
     PAYMENT_METHODS,
     OPERATION_TYPES
 } from './core/constants';
@@ -42,42 +41,72 @@ export {
     BuilderError
 } from './errors/errors';
 
-// Utilities - часто використовувані
+// Utilities
 export {
-    createMeta,
+    // DateTime
+    getDateTime,
     getCurrentPRRODate,
     getCurrentPRROTime,
+    isValidPRRODate,
+    isoToPRRODate,
+    PRRO_DATE_FORMATS,
+    type DateFormat,
+    type DateTimeOptions,
+    
+    // Meta
+    createMeta,
+    isValidUID,
+    createTestUID,
+    type CreateMetaOptions,
+    type MetaData,
+    
+    // XML
+    buildXml,
+    isValidXML,
+    extractElementValue,
+    objectToXMLElements,
+    
+    // Validation
+    isValidTIN,
+    isValidFiscalNumber,
+    isValidOrderNumber,
+    isValidAmount,
+    isValidQuantity,
     formatAmount,
     formatQuantity,
-    isValidTIN,
-    isValidAmount,
-    sanitizeXMLString,
-    type MetaData,
-    type CreateMetaOptions
+    isValidItemName,
+    sanitizeXMLString
 } from './utils';
-
-// Re-export всіх утиліт для розширеного використання
-export * as Utils from './utils';
 
 /**
  * Версія бібліотеки
  */
-export const VERSION = '0.2.0';
+export const VERSION = '0.1.0';
 
 /**
- * Фабрика для швидкого створення білдера
+ * Створює білдер для PRRO документів
  * @param shift - Дані зміни
- * @param testMode - Режим тестування
- * @returns Налаштований білдер
+ * @param testMode - Увімкнути тестовий режим (за замовчуванням false)
+ * @returns Налаштований білдер PRRO
+ * @example
+ * ```typescript
+ * const shift: ShiftData = {
+ *   tin: '1234567890',
+ *   orgName: 'ТОВ "Моя компанія"',
+ *   // ... інші поля
+ * };
+ * 
+ * const builder = createPRROBuilder(shift, true); // тестовий режим
+ * ```
  */
 export function createPRROBuilder(shift: ShiftData, testMode: boolean = false): PRROBuilder {
     return new PRROBuilder(shift).setTestMode(testMode);
 }
 
 /**
- * Фабрика для створення онлайн білдера
+ * Створює білдер для онлайн документів
  * @param shift - Дані зміни
- * @param testMode - Режим тестування
+ * @param testMode - Увімкнути тестовий режим (за замовчуванням false)
  * @returns Налаштований онлайн білдер
  */
 export function createOnlineBuilder(shift: ShiftData, testMode: boolean = false): OnlineDocumentBuilder {
@@ -85,23 +114,54 @@ export function createOnlineBuilder(shift: ShiftData, testMode: boolean = false)
 }
 
 /**
- * Фабрика для створення офлайн білдера
+ * Створює білдер для офлайн документів
  * @param shift - Дані зміни
- * @param testMode - Режим тестування
+ * @param testMode - Увімкнути тестовий режим (за замовчуванням false)
  * @returns Налаштований офлайн білдер
+ * @example
+ * ```typescript
+ * const builder = createOfflineBuilder(shift);
+ * 
+ * // Початок офлайн сесії
+ * const beginOffline = builder.buildOfflineBegin();
+ * 
+ * // Офлайн чек
+ * const receipt = builder.buildOfflineReceipt(lines, payment, '123456789');
+ * 
+ * // Завершення офлайн сесії
+ * const endOffline = builder.buildOfflineEnd();
+ * ```
  */
 export function createOfflineBuilder(shift: ShiftData, testMode: boolean = false): OfflineDocumentBuilder {
     return new OfflineDocumentBuilder(shift).setTestMode(testMode);
 }
 
 /**
- * Швидка валідація основних даних
+ * Швидка валідація даних зміни
  * @param shift - Дані зміни для валідації
- * @returns Результат валідації
+ * @returns Результат валідації з масивом помилок (якщо є)
+ * @example
+ * ```typescript
+ * const validation = quickValidateShift(shift);
+ * if (!validation.isValid) {
+ *   console.error('Помилки валідації:', validation.errors);
+ * }
+ * ```
  */
 export function quickValidateShift(shift: ShiftData): ValidationResult {
     const validator = new PRROValidator();
     return validator.validateShift(shift);
+}
+
+/**
+ * Швидка валідація даних чека
+ * @param lines - Товарні позиції
+ * @param payment - Дані оплати
+ * @returns Результат валідації з масивом помилок (якщо є)
+ */
+export function quickValidateReceipt(lines: ReceiptLine[], payment: PaymentData): ValidationResult {
+    const validator = new PRROValidator();
+    return validator.validateReceipt(lines, payment);
 }
 
 // Default export для зручності
@@ -110,10 +170,10 @@ export default {
     createOnlineBuilder,
     createOfflineBuilder,
     quickValidateShift,
+    quickValidateReceipt,
     PRROBuilder,
     OnlineDocumentBuilder,
     OfflineDocumentBuilder,
     PRROValidator,
-    Utils,
     VERSION
 };
