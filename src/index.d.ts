@@ -48,7 +48,7 @@ declare module 'robol_prro_kit' {
         serviceInput?: number;
         serviceOutput?: number;
     }
-    
+
     // Класи
     export class PRROBuilder {
         constructor(shift: ShiftData);
@@ -67,7 +67,12 @@ declare module 'robol_prro_kit' {
         buildOfflineBegin(revokeLastOnlineDoc?: boolean): XMLDocumentResult;
         buildOfflineEnd(): XMLDocumentResult;
         buildOfflineReceipt(lines: ReceiptLine[], payment: PaymentData, fiscalNumber: string): XMLDocumentResult;
-        buildOfflineRefund(lines: ReceiptLine[], payment: PaymentData, originalFiscalNumber: string, offlineFiscalNumber: string): XMLDocumentResult;
+        buildOfflineRefund(
+            lines: ReceiptLine[],
+            payment: PaymentData,
+            originalFiscalNumber: string,
+            offlineFiscalNumber: string,
+        ): XMLDocumentResult;
     }
 
     export class PRROValidator {
@@ -76,7 +81,7 @@ declare module 'robol_prro_kit' {
         validateFiscalNumber(fiscalNumber: string): boolean;
         validateAmount(amount: number): boolean;
     }
-    
+
     // API Client
     export class PRROApiClient {
         constructor(baseUrl?: string);
@@ -100,7 +105,7 @@ declare module 'robol_prro_kit' {
         DOC_SUBTYPES: Record<string, number>;
         PAYMENT_TYPES: Record<string, number>;
     };
-    
+
     // Утиліти
     export function getCurrentPRRODate(): string;
     export function getCurrentPRROTime(): string;
@@ -110,17 +115,17 @@ declare module 'robol_prro_kit' {
     export function isValidAmount(amount: number): boolean;
     export function isValidQuantity(quantity: number): boolean;
     export function sanitizeXMLString(str: string): string;
-    
+
     // Помилки
     export class PRROError extends Error {
         code?: string;
         details?: any;
     }
-    
+
     export class ValidationError extends PRROError {
         validationErrors: string[];
     }
-    
+
     export class XMLError extends PRROError {}
     export class BuilderError extends PRROError {}
 }

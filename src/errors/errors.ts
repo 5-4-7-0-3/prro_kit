@@ -10,7 +10,7 @@ export class PRROError extends Error {
     constructor(
         message: string,
         public code?: string,
-        public details?: any
+        public details?: any,
     ) {
         super(message);
         this.name = 'PRROError';
@@ -25,7 +25,10 @@ export class ValidationError extends PRROError {
      * @param message - Повідомлення про помилку
      * @param validationErrors - Масив помилок валідації
      */
-    constructor(message: string, public validationErrors: string[]) {
+    constructor(
+        message: string,
+        public validationErrors: string[],
+    ) {
         super(message, 'VALIDATION_ERROR', { validationErrors });
         this.name = 'ValidationError';
     }

@@ -1,11 +1,20 @@
 {
     "name": "robol_prro_kit",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "description": "Бібліотека для генерування XML-документів PRRO/Library for generating XML documents from PRRO.",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
+    "module": "dist/index.js",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "require": "./dist/index.js",
+            "import": "./dist/index.js"
+        }
+    },
     "files": [
-        "dist/**/*"
+        "dist/**/*",
+        "README.md"
     ],
     "scripts": {
         "---------- Build & Clean -----------": "",
@@ -32,7 +41,16 @@
         "Fiscalization",
         "XML",
         "TypeScript",
-        "Ukraine"
+        "Ukraine",
+        "fiscal",
+        "cash-register",
+        "receipt",
+        "tax",
+        "ДФС",
+        "фіскалізація",
+        "касовий-апарат",
+        "чек",
+        "податки"
     ],
     "author": "Robol Prro Kit Team",
     "license": "MIT",
@@ -45,7 +63,7 @@
         "url": "https://github.com/KanRobotics/robol_prro_kit/issues"
     },
     "engines": {
-        "node": ">=14 <23"
+        "node": ">=16.0.0"
     },
     "husky": {
         "hooks": {

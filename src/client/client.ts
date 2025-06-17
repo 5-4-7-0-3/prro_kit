@@ -2,19 +2,19 @@ import axios, { AxiosInstance, AxiosError } from 'axios';
 
 /**
  * Клієнт для взаємодії з PRRO Фіскальним Сервером
- * 
+ *
  * @example
  * ```typescript
  * import { PRROApiClient } from 'robol_prro_kit';
- * 
+ *
  * const client = new PRROApiClient();
- * 
+ *
  * // Відправка документа
  * const docResponse = await client.doc(base64Document);
- * 
+ *
  * // Відправка команди
  * const cmdResponse = await client.cmd<MyResponseType>(base64Command);
- * 
+ *
  * // Відправка пакета офлайн документів
  * const pckResponse = await client.pck<PackageResponseType>(base64Package);
  * ```
@@ -32,8 +32,8 @@ export class PRROApiClient {
         this.axiosInstance = axios.create({
             baseURL: this.baseUrl,
             headers: {
-                'Content-Type': 'application/octet-stream'
-            }
+                'Content-Type': 'application/octet-stream',
+            },
         });
     }
 
@@ -42,12 +42,12 @@ export class PRROApiClient {
      * @param base64Document - Документ в кодуванні Base64
      * @returns Відповідь сервера
      * @throws {Error} Якщо виникла помилка при відправці
-     * 
+     *
      * @example
      * ```typescript
      * const client = new PRROApiClient();
      * const base64Doc = Buffer.from(xmlDocument).toString('base64');
-     * 
+     *
      * try {
      *   const response = await client.doc(base64Doc);
      *   console.log('Документ відправлено:', response);
@@ -63,11 +63,11 @@ export class PRROApiClient {
 
         try {
             const buffer = Buffer.from(base64Document, 'base64');
-            
+
             const response = await this.axiosInstance.post('/doc', buffer, {
                 headers: {
-                    'Content-Length': buffer.length.toString()
-                }
+                    'Content-Length': buffer.length.toString(),
+                },
             });
 
             return response.data;
@@ -81,18 +81,18 @@ export class PRROApiClient {
      * @param base64Command - Команда в кодуванні Base64
      * @returns Відповідь сервера з типізацією
      * @throws {Error} Якщо виникла помилка при відправці
-     * 
+     *
      * @example
      * ```typescript
      * interface ServerStateResponse {
      *   Timestamp: string;
      *   UID: string;
      * }
-     * 
+     *
      * const client = new PRROApiClient();
      * const command = { Command: "ServerState", UID: "some-uid" };
      * const base64Cmd = Buffer.from(JSON.stringify(command)).toString('base64');
-     * 
+     *
      * const response = await client.cmd<ServerStateResponse>(base64Cmd);
      * console.log('Час сервера:', response.Timestamp);
      * ```
@@ -104,11 +104,11 @@ export class PRROApiClient {
 
         try {
             const buffer = Buffer.from(base64Command, 'base64');
-            
+
             const response = await this.axiosInstance.post<T>('/cmd', buffer, {
                 headers: {
-                    'Content-Length': buffer.length.toString()
-                }
+                    'Content-Length': buffer.length.toString(),
+                },
             });
 
             return response.data;
@@ -122,17 +122,17 @@ export class PRROApiClient {
      * @param base64Package - Пакет документів в кодуванні Base64
      * @returns Відповідь сервера з типізацією
      * @throws {Error} Якщо виникла помилка при відправці
-     * 
+     *
      * @example
      * ```typescript
      * interface PackageResponse {
      *   OfflineSessionId: number;
      *   OfflineSeed: number;
      * }
-     * 
+     *
      * const client = new PRROApiClient();
      * const base64Package = createOfflinePackage(); // ваша функція створення пакета
-     * 
+     *
      * const response = await client.pck<PackageResponse>(base64Package);
      * console.log('ID офлайн сесії:', response.OfflineSessionId);
      * ```
@@ -144,11 +144,11 @@ export class PRROApiClient {
 
         try {
             const buffer = Buffer.from(base64Package, 'base64');
-            
+
             const response = await this.axiosInstance.post<T>('/pck', buffer, {
                 headers: {
-                    'Content-Length': buffer.length.toString()
-                }
+                    'Content-Length': buffer.length.toString(),
+                },
             });
 
             return response.data;
@@ -165,22 +165,22 @@ export class PRROApiClient {
     private handleError(error: unknown): Error {
         if (axios.isAxiosError(error)) {
             const axiosError = error as AxiosError;
-            
+
             // Якщо є відповідь від сервера з помилкою
             if (axiosError.response) {
                 const errorMessage = axiosError.response.data || axiosError.message;
                 return new Error(`PRRO Server Error: ${errorMessage}`);
             }
-            
+
             // Якщо запит не вдалося відправити
             if (axiosError.request) {
                 return new Error('PRRO Server is not responding');
             }
-            
+
             // Інші помилки axios
             return new Error(`Request Error: ${axiosError.message}`);
         }
-        
+
         // Невідомі помилки
         return error instanceof Error ? error : new Error(String(error));
     }
@@ -190,12 +190,12 @@ export class PRROApiClient {
  * Створює новий екземпляр PRRO API клієнта
  * @param baseUrl - Базова адреса PRRO сервера
  * @returns Налаштований API клієнт
- * 
+ *
  * @example
  * ```typescript
  * // Використання стандартного сервера
  * const client = createPRROApiClient();
- * 
+ *
  * // Використання кастомного сервера (для тестування)
  * const testClient = createPRROApiClient('https://test.example.com/fs');
  * ```

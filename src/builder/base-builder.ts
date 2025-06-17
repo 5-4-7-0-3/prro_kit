@@ -3,6 +3,7 @@ import { createMeta } from '../utils/meta';
 import { buildXml } from '../utils/xmlBuilder';
 import { PRROValidator } from '../validator/validator';
 import { BuilderError } from '../errors/errors';
+import { DOC_TYPES } from '../core';
 
 /**
  * Базовий білдер для створення PRRO документів
@@ -19,14 +20,11 @@ export class PRROBuilder {
     constructor(shift: ShiftData) {
         this.shift = shift;
         this.validator = new PRROValidator();
-        
+
         // Валідуємо дані зміни при створенні
         const validation = this.validator.validateShift(shift);
         if (!validation.isValid) {
-            throw new BuilderError(
-                `Invalid shift data: ${validation.errors.join(', ')}`,
-                'PRROBuilder'
-            );
+            throw new BuilderError(`Invalid shift data: ${validation.errors.join(', ')}`, 'PRROBuilder');
         }
     }
 
@@ -51,9 +49,9 @@ export class PRROBuilder {
      */
     buildOpenShift(): XMLDocumentResult {
         const meta = createMeta({ isTestMode: this.testing });
-        
+
         const head = {
-            DOCTYPE: 100,
+            DOCTYPE: DOC_TYPES.OPEN_SHIFT,
             UID: meta.uid,
             TIN: this.shift.tin,
             IPN: this.shift.ipn || '',
@@ -67,12 +65,12 @@ export class PRROBuilder {
             CASHREGISTERNUM: this.shift.numFiscal,
             CASHIER: this.shift.cashier,
             VER: 1,
-            ...(this.testing && { TESTING: 1 })
+            ...(this.testing && { TESTING: 1 }),
         };
 
         return {
             xml: buildXml('CHECK', 'CHECKHEAD', head),
-            uid: meta.uid
+            uid: meta.uid,
         };
     }
 
@@ -87,9 +85,9 @@ export class PRROBuilder {
      */
     buildCloseShift(): XMLDocumentResult {
         const meta = createMeta({ isTestMode: this.testing });
-        
+
         const head = {
-            DOCTYPE: 101,
+            DOCTYPE: DOC_TYPES.CLOSE_SHIFT,
             UID: meta.uid,
             TIN: this.shift.tin,
             IPN: this.shift.ipn || '',
@@ -103,12 +101,12 @@ export class PRROBuilder {
             CASHREGISTERNUM: this.shift.numFiscal,
             CASHIER: this.shift.cashier,
             VER: 1,
-            ...(this.testing && { TESTING: 1 })
+            ...(this.testing && { TESTING: 1 }),
         };
 
         return {
             xml: buildXml('CHECK', 'CHECKHEAD', head),
-            uid: meta.uid
+            uid: meta.uid,
         };
     }
 
@@ -129,13 +127,13 @@ export class PRROBuilder {
      *     PRICE: 25.50,
      *     COST: 51.00
      * }];
-     * 
+     *
      * const payment: PaymentData = {
      *     method: 'CASH',
      *     amount: 51.00,
      *     provided: 100.00
      * };
-     * 
+     *
      * const { xml, uid } = builder.buildReceipt(lines, payment);
      * ```
      */
@@ -143,17 +141,14 @@ export class PRROBuilder {
         // Валідуємо дані чека
         const validation = this.validator.validateReceipt(lines, payment);
         if (!validation.isValid) {
-            throw new BuilderError(
-                `Invalid receipt data: ${validation.errors.join(', ')}`,
-                'PRROBuilder'
-            );
+            throw new BuilderError(`Invalid receipt data: ${validation.errors.join(', ')}`, 'PRROBuilder');
         }
 
         const meta = createMeta({ isTestMode: this.testing });
         const totalAmount = lines.reduce((sum, line) => sum + line.COST, 0);
-        
+
         const head = {
-            DOCTYPE: 0,
+            DOCTYPE: DOC_TYPES.RECEIPT,
             UID: meta.uid,
             TIN: this.shift.tin,
             IPN: this.shift.ipn || '',
@@ -167,29 +162,32 @@ export class PRROBuilder {
             CASHREGISTERNUM: this.shift.numFiscal,
             CASHIER: this.shift.cashier,
             VER: 1,
-            ...(this.testing && { TESTING: 1 })
+            ...(this.testing && { TESTING: 1 }),
         };
 
-        const paymentSection = [{
-            ROWNUM: '1',
-            PAYFORMCD: payment.method === 'CASH' ? 0 : 1,
-            PAYFORMNM: payment.method === 'CASH' ? 'ГОТІВКА' : 'КАРТКА',
-            SUM: payment.amount.toFixed(2),
-            ...(payment.method === 'CASH' && payment.provided && {
-                PROVIDED: payment.provided.toFixed(2),
-                REMAINS: (payment.provided - payment.amount).toFixed(2)
-            })
-        }];
+        const paymentSection = [
+            {
+                ROWNUM: '1',
+                PAYFORMCD: payment.method === 'CASH' ? 0 : 1,
+                PAYFORMNM: payment.method === 'CASH' ? 'ГОТІВКА' : 'КАРТКА',
+                SUM: payment.amount.toFixed(2),
+                ...(payment.method === 'CASH' &&
+                    payment.provided && {
+                        PROVIDED: payment.provided.toFixed(2),
+                        REMAINS: (payment.provided - payment.amount).toFixed(2),
+                    }),
+            },
+        ];
 
         const bodySections = {
             CHECKTOTAL: { SUM: totalAmount.toFixed(2) },
             CHECKPAY: paymentSection,
-            CHECKBODY: lines
+            CHECKBODY: lines,
         };
 
         return {
             xml: buildXml('CHECK', 'CHECKHEAD', head, bodySections),
-            uid: meta.uid
+            uid: meta.uid,
         };
     }
 
@@ -211,12 +209,12 @@ export class PRROBuilder {
      *     PRICE: 25.50,
      *     COST: 25.50
      * }];
-     * 
+     *
      * const payment: PaymentData = {
      *     method: 'CASH',
      *     amount: 25.50
      * };
-     * 
+     *
      * const { xml, uid } = builder.buildRefund(lines, payment, "123456789");
      * ```
      */
@@ -224,10 +222,7 @@ export class PRROBuilder {
         // Валідуємо дані чека
         const validation = this.validator.validateReceipt(lines, payment);
         if (!validation.isValid) {
-            throw new BuilderError(
-                `Invalid refund data: ${validation.errors.join(', ')}`,
-                'PRROBuilder'
-            );
+            throw new BuilderError(`Invalid refund data: ${validation.errors.join(', ')}`, 'PRROBuilder');
         }
 
         if (!originalFiscalNumber) {
@@ -236,9 +231,9 @@ export class PRROBuilder {
 
         const meta = createMeta({ isTestMode: this.testing });
         const totalAmount = lines.reduce((sum, line) => sum + line.COST, 0);
-        
+
         const head = {
-            DOCTYPE: 0,
+            DOCTYPE: DOC_TYPES.RECEIPT,
             DOCSUBTYPE: 1,
             UID: meta.uid,
             TIN: this.shift.tin,
@@ -254,25 +249,27 @@ export class PRROBuilder {
             ORDERRETNUM: originalFiscalNumber,
             CASHIER: this.shift.cashier,
             VER: 1,
-            ...(this.testing && { TESTING: 1 })
+            ...(this.testing && { TESTING: 1 }),
         };
 
-        const paymentSection = [{
-            ROWNUM: '1',
-            PAYFORMCD: payment.method === 'CASH' ? 0 : 1,
-            PAYFORMNM: payment.method === 'CASH' ? 'ГОТІВКА' : 'КАРТКА',
-            SUM: totalAmount.toFixed(2)
-        }];
+        const paymentSection = [
+            {
+                ROWNUM: '1',
+                PAYFORMCD: payment.method === 'CASH' ? 0 : 1,
+                PAYFORMNM: payment.method === 'CASH' ? 'ГОТІВКА' : 'КАРТКА',
+                SUM: totalAmount.toFixed(2),
+            },
+        ];
 
         const bodySections = {
             CHECKTOTAL: { SUM: totalAmount.toFixed(2) },
             CHECKPAY: paymentSection,
-            CHECKBODY: lines
+            CHECKBODY: lines,
         };
 
         return {
             xml: buildXml('CHECK', 'CHECKHEAD', head, bodySections),
-            uid: meta.uid
+            uid: meta.uid,
         };
     }
 }

@@ -28,12 +28,7 @@ export interface MetaData {
  * @returns Об'єкт метаданих
  */
 export function createMeta(opts: CreateMetaOptions = {}): MetaData {
-    const { 
-        isTestMode = false, 
-        uuidFn = uuidv4, 
-        timeZone, 
-        isoString 
-    } = opts;
+    const { isTestMode = false, uuidFn = uuidv4, isoString } = opts;
 
     const timestamp = isoString ? new Date(isoString) : new Date();
 
@@ -42,7 +37,7 @@ export function createMeta(opts: CreateMetaOptions = {}): MetaData {
         date: getCurrentPRRODate(),
         time: getCurrentPRROTime(),
         testing: isTestMode,
-        timestamp
+        timestamp,
     };
 }
 
@@ -66,10 +61,10 @@ export function createTestUID(seed: string = 'test'): string {
     let hash = 0;
     for (let i = 0; i < seed.length; i++) {
         const char = seed.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
+        hash = (hash << 5) - hash + char;
         hash = hash & hash; // Convert to 32bit integer
     }
-    
+
     const hex = Math.abs(hash).toString(16).padStart(8, '0');
     return `${hex.slice(0, 8)}-${hex.slice(0, 4)}-4${hex.slice(0, 3)}-a${hex.slice(0, 3)}-${hex.slice(0, 12).padEnd(12, '0')}`;
 }

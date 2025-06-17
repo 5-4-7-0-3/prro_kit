@@ -35,15 +35,11 @@ export interface DateTimeOptions {
  * @returns Відформатована дата/час
  */
 export function getDateTime(opts: DateTimeOptions = {}): string {
-    const { 
-        format = 'default', 
-        isoString, 
-        timeZone = 'Europe/Kyiv' 
-    } = opts;
-    
+    const { format = 'default', isoString, timeZone = 'Europe/Kyiv' } = opts;
+
     const dt = isoString ? dayjs(isoString).tz(timeZone) : dayjs().tz(timeZone);
     const selectedFormat = PRRO_DATE_FORMATS[format as DateFormat] ?? format;
-    
+
     return dt.format(selectedFormat);
 }
 

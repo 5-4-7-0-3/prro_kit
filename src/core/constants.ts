@@ -15,7 +15,7 @@ export const PRRO_CONSTANTS = {
         /** Завершення офлайн сесії */
         OFFLINE_END: 103,
     },
-    
+
     /** Підтипи документів */
     DOC_SUBTYPES: {
         /** Касовий чек (реалізація) */
@@ -23,16 +23,16 @@ export const PRRO_CONSTANTS = {
         /** Видатковий чек (повернення) */
         RETURN: 1,
         /** Чек сторнування */
-        CANCEL: 5
+        CANCEL: 5,
     },
-    
+
     /** Типи платежів */
     PAYMENT_TYPES: {
         /** Готівка */
         CASH: 0,
         /** Банківська картка */
         CARD: 1,
-    }
+    },
 } as const;
 
 /** Експорт окремих констант для зручності */
@@ -43,7 +43,7 @@ export const PAYMENT_TYPES = PRRO_CONSTANTS.PAYMENT_TYPES;
 /** Методи оплати */
 export const PAYMENT_METHODS = {
     CASH: 'CASH',
-    CARD: 'CARD'
+    CARD: 'CARD',
 } as const;
 
 /** Типи операцій */

@@ -28,7 +28,7 @@ export function buildXml(
     rootName: string,
     headTag: string,
     headData: Record<string, any>,
-    bodySections?: Record<string, any>
+    bodySections?: Record<string, any>,
 ): string {
     try {
         const doc = create(XML_OPTIONS).ele(rootName, {

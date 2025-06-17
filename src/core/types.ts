@@ -111,14 +111,14 @@ export interface ZReportData {
 /**
  * Типи документів PRRO
  */
-export type DocumentType = 
-    | 'RECEIPT'           // Чек реалізації
-    | 'REFUND'           // Чек повернення
-    | 'OPEN_SHIFT'       // Відкриття зміни
-    | 'CLOSE_SHIFT'      // Закриття зміни
-    | 'OFFLINE_BEGIN'    // Початок офлайн сесії
-    | 'OFFLINE_END'      // Завершення офлайн сесії
-    | 'Z_REPORT';        // Z-звіт
+export type DocumentType =
+    | 'RECEIPT' // Чек реалізації
+    | 'REFUND' // Чек повернення
+    | 'OPEN_SHIFT' // Відкриття зміни
+    | 'CLOSE_SHIFT' // Закриття зміни
+    | 'OFFLINE_BEGIN' // Початок офлайн сесії
+    | 'OFFLINE_END' // Завершення офлайн сесії
+    | 'Z_REPORT'; // Z-звіт
 
 /**
  * Методи оплати
@@ -128,9 +128,9 @@ export type PaymentMethod = 'CASH' | 'CARD';
 /**
  * Підтипи документів
  */
-export type DocumentSubtype = 
-    | 'SALE'             // Продаж
-    | 'RETURN'           // Повернення
-    | 'SERVICE_INPUT'    // Службове внесення
-    | 'SERVICE_OUTPUT'   // Службова видача
-    | 'CANCEL';          // Сторно
+export type DocumentSubtype =
+    | 'SALE' // Продаж
+    | 'RETURN' // Повернення
+    | 'SERVICE_INPUT' // Службове внесення
+    | 'SERVICE_OUTPUT' // Службова видача
+    | 'CANCEL'; // Сторно

@@ -1,11 +1,11 @@
 import { ShiftData, ReceiptLine, PaymentData, ValidationResult } from '../core/types';
-import { 
+import {
     isValidTIN,
     isValidOrderNumber,
     isValidFiscalNumber,
     isValidItemName,
     isValidAmount,
-    isValidQuantity
+    isValidQuantity,
 } from './validation';
 
 /**
@@ -13,7 +13,6 @@ import {
  * Перевіряє коректність даних перед генерацією XML
  */
 export class PRROValidator {
-    
     /**
      * Валідує дані зміни
      * @param shift - Дані зміни для валідації
@@ -22,7 +21,7 @@ export class PRROValidator {
      * ```typescript
      * const validator = new PRROValidator();
      * const result = validator.validateShift(shiftData);
-     * 
+     *
      * if (!result.isValid) {
      *   console.error('Помилки:', result.errors);
      * }
@@ -43,7 +42,7 @@ export class PRROValidator {
 
         // Валідація назви організації
         if (!shift.orgName || shift.orgName.trim().length === 0) {
-            errors.push('Назва організації обов\'язкова');
+            errors.push("Назва організації обов'язкова");
         }
 
         if (shift.orgName && shift.orgName.length > 256) {
@@ -52,7 +51,7 @@ export class PRROValidator {
 
         // Валідація назви точки продажу
         if (!shift.taxObjectsName || shift.taxObjectsName.trim().length === 0) {
-            errors.push('Назва точки продажу обов\'язкова');
+            errors.push("Назва точки продажу обов'язкова");
         }
 
         if (shift.taxObjectsName && shift.taxObjectsName.length > 256) {
@@ -61,7 +60,7 @@ export class PRROValidator {
 
         // Валідація адреси
         if (!shift.address || shift.address.trim().length === 0) {
-            errors.push('Адреса точки продажу обов\'язкова');
+            errors.push("Адреса точки продажу обов'язкова");
         }
 
         if (shift.address && shift.address.length > 256) {
@@ -70,12 +69,12 @@ export class PRROValidator {
 
         // Валідація номера документа
         if (!isValidOrderNumber(shift.orderNum)) {
-            errors.push('Номер документа обов\'язковий (до 50 символів)');
+            errors.push("Номер документа обов'язковий (до 50 символів)");
         }
 
         // Валідація локального номера РРО
         if (!shift.numLocal || shift.numLocal.trim().length === 0) {
-            errors.push('Локальний номер РРО обов\'язковий');
+            errors.push("Локальний номер РРО обов'язковий");
         }
 
         if (shift.numLocal && shift.numLocal.length > 64) {
@@ -89,7 +88,7 @@ export class PRROValidator {
 
         // Валідація касира
         if (!shift.cashier || shift.cashier.trim().length === 0) {
-            errors.push('ПІБ касира обов\'язкове');
+            errors.push("ПІБ касира обов'язкове");
         }
 
         if (shift.cashier && shift.cashier.length > 128) {
@@ -98,7 +97,7 @@ export class PRROValidator {
 
         return {
             isValid: errors.length === 0,
-            errors
+            errors,
         };
     }
 
@@ -110,7 +109,7 @@ export class PRROValidator {
      * @example
      * ```typescript
      * const result = validator.validateReceipt(lines, payment);
-     * 
+     *
      * if (!result.isValid) {
      *   result.errors.forEach(error => console.error(error));
      * }
@@ -130,12 +129,12 @@ export class PRROValidator {
 
             // Валідація номера рядка
             if (!line.ROWNUM) {
-                errors.push(`Позиція ${position}: номер рядка обов\'язковий`);
+                errors.push(`Позиція ${position}: номер рядка обов'язковий`);
             }
 
             // Валідація коду товару
             if (!line.CODE || line.CODE.trim().length === 0) {
-                errors.push(`Позиція ${position}: код товару обов\'язковий`);
+                errors.push(`Позиція ${position}: код товару обов'язковий`);
             }
 
             if (line.CODE && line.CODE.length > 64) {
@@ -144,12 +143,12 @@ export class PRROValidator {
 
             // Валідація назви товару
             if (!isValidItemName(line.NAME)) {
-                errors.push(`Позиція ${position}: назва товару обов\'язкова (до 128 символів)`);
+                errors.push(`Позиція ${position}: назва товару обов'язкова (до 128 символів)`);
             }
 
             // Валідація одиниці виміру
             if (!line.UNITNM || line.UNITNM.trim().length === 0) {
-                errors.push(`Позиція ${position}: одиниця виміру обов\'язкова`);
+                errors.push(`Позиція ${position}: одиниця виміру обов'язкова`);
             }
 
             if (line.UNITNM && line.UNITNM.length > 64) {
@@ -185,7 +184,7 @@ export class PRROValidator {
 
         // Валідація оплати
         if (!payment) {
-            errors.push('Дані оплати обов\'язкові');
+            errors.push("Дані оплати обов'язкові");
         } else {
             // Валідація методу оплати
             if (payment.method !== 'CASH' && payment.method !== 'CARD') {
@@ -219,7 +218,7 @@ export class PRROValidator {
 
         return {
             isValid: errors.length === 0,
-            errors
+            errors,
         };
     }
 

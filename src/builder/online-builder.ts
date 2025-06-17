@@ -22,7 +22,7 @@ export class OnlineDocumentBuilder extends PRROBuilder {
      *   serviceInput: 1000.00,
      *   serviceOutput: 500.00
      * };
-     * 
+     *
      * const zReport = builder.buildZReport(zReportData);
      * ```
      */
@@ -43,33 +43,36 @@ export class OnlineDocumentBuilder extends PRROBuilder {
             CASHREGISTERNUM: this.shift.numFiscal,
             CASHIER: this.shift.cashier,
             VER: 1,
-            ...(this.testing && { TESTING: 1 })
+            ...(this.testing && { TESTING: 1 }),
         };
 
         const realizSection = {
             SUM: data.totalSales.toFixed(2),
-            ORDERSCNT: data.salesCount
+            ORDERSCNT: data.salesCount,
         };
 
-        const returnSection = data.totalRefunds > 0 ? {
-            SUM: data.totalRefunds.toFixed(2),
-            ORDERSCNT: data.refundsCount
-        } : undefined;
+        const returnSection =
+            data.totalRefunds > 0
+                ? {
+                      SUM: data.totalRefunds.toFixed(2),
+                      ORDERSCNT: data.refundsCount,
+                  }
+                : undefined;
 
         const bodySection = {
             SERVICEINPUT: data.serviceInput?.toFixed(2),
-            SERVICEOUTPUT: data.serviceOutput?.toFixed(2)
+            SERVICEOUTPUT: data.serviceOutput?.toFixed(2),
         };
 
         const bodySections = {
             ZREPREALIZ: realizSection,
             ...(returnSection && { ZREPRETURN: returnSection }),
-            ZREPBODY: bodySection
+            ZREPBODY: bodySection,
         };
 
         return {
             xml: buildXml('ZREP', 'ZREPHEAD', head, bodySections),
-            uid: meta.uid
+            uid: meta.uid,
         };
     }
 }

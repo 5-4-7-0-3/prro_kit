@@ -1,6 +1,6 @@
 import { PRROBuilder } from './base-builder';
 import { createMeta, buildXml } from '../utils';
-import { ReceiptLine, PaymentData, XMLDocumentResult } from '../core';
+import { ReceiptLine, PaymentData, XMLDocumentResult, DOC_TYPES } from '../core';
 import { BuilderError } from '../errors';
 
 /**
@@ -16,7 +16,7 @@ export class OfflineDocumentBuilder extends PRROBuilder {
      * ```typescript
      * // Звичайний початок офлайн сесії
      * const beginOffline = builder.buildOfflineBegin();
-     * 
+     *
      * // З відкликанням останнього онлайн документа
      * const beginWithRevoke = builder.buildOfflineBegin(true);
      * ```
@@ -25,7 +25,7 @@ export class OfflineDocumentBuilder extends PRROBuilder {
         const meta = createMeta({ isTestMode: this.testing });
 
         const head = {
-            DOCTYPE: 102,
+            DOCTYPE: DOC_TYPES.OFFLINE_BEGIN,
             UID: meta.uid,
             TIN: this.shift.tin,
             IPN: this.shift.ipn || '',
@@ -62,7 +62,7 @@ export class OfflineDocumentBuilder extends PRROBuilder {
         const meta = createMeta({ isTestMode: this.testing });
 
         const head = {
-            DOCTYPE: 103,
+            DOCTYPE: DOC_TYPES.OFFLINE_END,
             UID: meta.uid,
             TIN: this.shift.tin,
             IPN: this.shift.ipn || '',
@@ -104,38 +104,30 @@ export class OfflineDocumentBuilder extends PRROBuilder {
      *     PRICE: 100.00,
      *     COST: 100.00
      * }];
-     * 
+     *
      * const payment: PaymentData = {
      *     method: 'CASH',
      *     amount: 100.00
      * };
-     * 
+     *
      * const offlineReceipt = builder.buildOfflineReceipt(
-     *     lines, 
-     *     payment, 
+     *     lines,
+     *     payment,
      *     '82563.25.6127'
      * );
      * ```
      */
-    buildOfflineReceipt(
-        lines: ReceiptLine[],
-        payment: PaymentData,
-        fiscalNumber: string,
-    ): XMLDocumentResult {
+    buildOfflineReceipt(lines: ReceiptLine[], payment: PaymentData, fiscalNumber: string): XMLDocumentResult {
         if (!fiscalNumber) {
-            throw new BuilderError(
-                'Fiscal number is required for offline receipt',
-                'OfflineDocumentBuilder'
-            );
+            throw new BuilderError('Fiscal number is required for offline receipt', 'OfflineDocumentBuilder');
         }
 
         const receipt = super.buildReceipt(lines, payment);
 
-        const xmlWithOfflineFields = receipt.xml
-            .replace(
-                '<CASHREGISTERNUM>',
-                `<ORDERTAXNUM>${fiscalNumber}</ORDERTAXNUM><OFFLINE>true</OFFLINE><CASHREGISTERNUM>`
-            );
+        const xmlWithOfflineFields = receipt.xml.replace(
+            '<CASHREGISTERNUM>',
+            `<ORDERTAXNUM>${fiscalNumber}</ORDERTAXNUM><OFFLINE>true</OFFLINE><CASHREGISTERNUM>`,
+        );
 
         return {
             xml: xmlWithOfflineFields,
@@ -165,22 +157,18 @@ export class OfflineDocumentBuilder extends PRROBuilder {
         lines: ReceiptLine[],
         payment: PaymentData,
         originalFiscalNumber: string,
-        offlineFiscalNumber: string
+        offlineFiscalNumber: string,
     ): XMLDocumentResult {
         if (!offlineFiscalNumber) {
-            throw new BuilderError(
-                'Offline fiscal number is required for offline refund',
-                'OfflineDocumentBuilder'
-            );
+            throw new BuilderError('Offline fiscal number is required for offline refund', 'OfflineDocumentBuilder');
         }
 
         const refund = super.buildRefund(lines, payment, originalFiscalNumber);
 
-        const xmlWithOfflineFields = refund.xml
-            .replace(
-                '<CASHREGISTERNUM>',
-                `<ORDERTAXNUM>${offlineFiscalNumber}</ORDERTAXNUM><OFFLINE>true</OFFLINE><CASHREGISTERNUM>`
-            );
+        const xmlWithOfflineFields = refund.xml.replace(
+            '<CASHREGISTERNUM>',
+            `<ORDERTAXNUM>${offlineFiscalNumber}</ORDERTAXNUM><OFFLINE>true</OFFLINE><CASHREGISTERNUM>`,
+        );
 
         return {
             xml: xmlWithOfflineFields,
