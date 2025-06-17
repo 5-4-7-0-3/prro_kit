@@ -1,4 +1,5 @@
 import { PRROBuilder, OnlineDocumentBuilder, OfflineDocumentBuilder } from './builder';
+import { createPRROApiClient, PRROApiClient } from './client';
 import { ShiftData, ValidationResult, ReceiptLine, PaymentData } from './core';
 import { PRROValidator } from './validator';
 
@@ -13,7 +14,7 @@ export type {
     XMLDocumentResult,
     DocumentType,
     PaymentMethod,
-    DocumentSubtype
+    DocumentSubtype,
 } from './core/types';
 
 export {
@@ -22,7 +23,7 @@ export {
     DOC_SUBTYPES,
     PAYMENT_TYPES,
     PAYMENT_METHODS,
-    OPERATION_TYPES
+    OPERATION_TYPES,
 } from './core/constants';
 
 // Builders
@@ -33,13 +34,11 @@ export { OfflineDocumentBuilder } from './builder/offline-builder';
 // Validator
 export { PRROValidator } from './validator/validator';
 
+// API Client
+export { PRROApiClient, createPRROApiClient } from './client';
+
 // Error handling
-export {
-    PRROError,
-    ValidationError,
-    XMLError,
-    BuilderError
-} from './errors/errors';
+export { PRROError, ValidationError, XMLError, BuilderError } from './errors/errors';
 
 // Utilities
 export {
@@ -52,20 +51,20 @@ export {
     PRRO_DATE_FORMATS,
     type DateFormat,
     type DateTimeOptions,
-    
+
     // Meta
     createMeta,
     isValidUID,
     createTestUID,
     type CreateMetaOptions,
     type MetaData,
-    
+
     // XML
     buildXml,
     isValidXML,
     extractElementValue,
     objectToXMLElements,
-    
+
     // Validation
     isValidTIN,
     isValidFiscalNumber,
@@ -75,13 +74,13 @@ export {
     formatAmount,
     formatQuantity,
     isValidItemName,
-    sanitizeXMLString
+    sanitizeXMLString,
 } from './utils';
 
 /**
  * Версія бібліотеки
  */
-export const VERSION = '0.1.0';
+export const VERSION = '0.2.0';
 
 /**
  * Створює білдер для PRRO документів
@@ -95,7 +94,7 @@ export const VERSION = '0.1.0';
  *   orgName: 'ТОВ "Моя компанія"',
  *   // ... інші поля
  * };
- * 
+ *
  * const builder = createPRROBuilder(shift, true); // тестовий режим
  * ```
  */
@@ -121,13 +120,13 @@ export function createOnlineBuilder(shift: ShiftData, testMode: boolean = false)
  * @example
  * ```typescript
  * const builder = createOfflineBuilder(shift);
- * 
+ *
  * // Початок офлайн сесії
  * const beginOffline = builder.buildOfflineBegin();
- * 
+ *
  * // Офлайн чек
  * const receipt = builder.buildOfflineReceipt(lines, payment, '123456789');
- * 
+ *
  * // Завершення офлайн сесії
  * const endOffline = builder.buildOfflineEnd();
  * ```
@@ -169,11 +168,13 @@ export default {
     createPRROBuilder,
     createOnlineBuilder,
     createOfflineBuilder,
+    createPRROApiClient,
     quickValidateShift,
     quickValidateReceipt,
     PRROBuilder,
     OnlineDocumentBuilder,
     OfflineDocumentBuilder,
+    PRROApiClient,
     PRROValidator,
-    VERSION
+    VERSION,
 };

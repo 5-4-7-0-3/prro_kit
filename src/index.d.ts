@@ -48,6 +48,8 @@ declare module 'robol_prro_kit' {
         serviceInput?: number;
         serviceOutput?: number;
     }
+    
+    // Класи
     export class PRROBuilder {
         constructor(shift: ShiftData);
         setTestMode(testing?: boolean): this;
@@ -74,11 +76,20 @@ declare module 'robol_prro_kit' {
         validateFiscalNumber(fiscalNumber: string): boolean;
         validateAmount(amount: number): boolean;
     }
+    
+    // API Client
+    export class PRROApiClient {
+        constructor(baseUrl?: string);
+        doc(base64Document: string): Promise<any>;
+        cmd<T = any>(base64Command: string): Promise<T>;
+        pck<T = any>(base64Package: string): Promise<T>;
+    }
 
     // Функції фабрики
     export function createPRROBuilder(shift: ShiftData, testMode?: boolean): PRROBuilder;
     export function createOnlineBuilder(shift: ShiftData, testMode?: boolean): OnlineDocumentBuilder;
     export function createOfflineBuilder(shift: ShiftData, testMode?: boolean): OfflineDocumentBuilder;
+    export function createPRROApiClient(baseUrl?: string): PRROApiClient;
     export function quickValidateShift(shift: ShiftData): ValidationResult;
     export function quickValidateReceipt(lines: ReceiptLine[], payment: PaymentData): ValidationResult;
 
