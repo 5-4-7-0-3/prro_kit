@@ -72,15 +72,6 @@ export class PRROValidator {
             errors.push("Номер документа обов'язковий (до 50 символів)");
         }
 
-        // Валідація локального номера РРО
-        if (!shift.numLocal || shift.numLocal.trim().length === 0) {
-            errors.push("Локальний номер РРО обов'язковий");
-        }
-
-        if (shift.numLocal && shift.numLocal.length > 64) {
-            errors.push('Локальний номер РРО не може перевищувати 64 символи');
-        }
-
         // Валідація фіскального номера
         if (!isValidFiscalNumber(shift.numFiscal)) {
             errors.push('Фіскальний номер РРО повинен містити 10 цифр');

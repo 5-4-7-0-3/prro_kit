@@ -6,8 +6,8 @@ import { create } from 'xmlbuilder2';
 const XML_OPTIONS = {
     version: '1.0',
     encoding: 'windows-1251',
+    noValidation: true,
 } as const;
-
 /**
  * Опції для серіалізації XML
  */

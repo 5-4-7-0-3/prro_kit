@@ -33,12 +33,16 @@ export function isValidFiscalNumber(fiscalNumber: string): boolean {
  * @param orderNum - Номер документа для валідації
  * @returns true якщо номер валідний
  */
-export function isValidOrderNumber(orderNum: string): boolean {
-    if (!orderNum || typeof orderNum !== 'string') return false;
+export function isValidOrderNumber(orderNum: string | number): boolean {
+    // Переводимо в рядок і обрізаємо пробіли
+    const str = String(orderNum).trim();
 
-    // Номер документа має бути непустим
-    const trimmed = orderNum.trim();
-    return trimmed.length > 0 && trimmed.length <= 50;
+    // Порожній рядок — некоректний номер
+    if (str.length === 0) return false;
+
+    // Довжина не повинна перевищувати 50 символів
+    if (str.length > 50) return false;
+    return true;
 }
 
 /**
