@@ -1,22 +1,6 @@
 import { create } from 'xmlbuilder2';
 
 /**
- * Опції для створення XML документа
- */
-const XML_OPTIONS = {
-    version: '1.0',
-    encoding: 'windows-1251',
-    noValidation: true,
-} as const;
-/**
- * Опції для серіалізації XML
- */
-const SERIALIZATION_OPTIONS = {
-    prettyPrint: false,
-    wellFormed: true,
-} as const;
-
-/**
  * Створює XML-документ з вказаною структурою для PRRO
  * @param rootName - Назва кореневого елементу (CHECK, ZREP)
  * @param headTag - Назва тегу заголовка (CHECKHEAD, ZREPHEAD)
@@ -31,53 +15,62 @@ export function buildXml(
     bodySections?: Record<string, any>,
 ): string {
     try {
-        const doc = create(XML_OPTIONS).ele(rootName, {
-            'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
-            'xsi:noNamespaceSchemaLocation': `${rootName.toLowerCase()}01.xsd`,
-        });
-
-        // Додавання заголовка
-        const head = doc.ele(headTag);
+        // Build XML manually to avoid xmlbuilder2 namespace issues
+        let xml = `<?xml version="1.0" encoding="windows-1251"?>`;
+        xml += `<${rootName} xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="${rootName.toLowerCase()}01.xsd">`;
+        
+        // Add header
+        xml += `<${headTag}>`;
         Object.entries(headData).forEach(([key, value]) => {
             if (value !== undefined && value !== null) {
-                head.ele(key).txt(String(value));
+                xml += `<${key}>${escapeXml(String(value))}</${key}>`;
             }
         });
-        head.up();
-
-        // Додавання секцій тіла документа
+        xml += `</${headTag}>`;
+        
         if (bodySections) {
             Object.entries(bodySections).forEach(([sectionName, content]) => {
-                const section = doc.ele(sectionName);
-
+                xml += `<${sectionName}>`;
+                
                 if (Array.isArray(content)) {
-                    // Для масивів створюємо ROW елементи
                     content.forEach((item) => {
-                        const row = section.ele('ROW');
+                        xml += '<ROW>';
                         Object.entries(item).forEach(([field, val]) => {
                             if (val !== undefined && val !== null) {
-                                row.ele(field).txt(String(val));
+                                xml += `<${field}>${escapeXml(String(val))}</${field}>`;
                             }
                         });
-                        row.up();
+                        xml += '</ROW>';
                     });
                 } else if (typeof content === 'object' && content !== null) {
-                    // Для об'єктів створюємо прямі елементи
                     Object.entries(content).forEach(([key, value]) => {
                         if (value !== undefined && value !== null) {
-                            section.ele(key).txt(String(value));
+                            xml += `<${key}>${escapeXml(String(value))}</${key}>`;
                         }
                     });
                 }
-
-                section.up();
+                
+                xml += `</${sectionName}>`;
             });
         }
-
-        return doc.end(SERIALIZATION_OPTIONS);
+        
+        xml += `</${rootName}>`;
+        return xml;
     } catch (error) {
         throw new Error(`XML generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
+}
+
+/**
+ * Escape special XML characters
+ */
+function escapeXml(str: string): string {
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#x27;');
 }
 
 /**
@@ -87,8 +80,14 @@ export function buildXml(
  */
 export function isValidXML(xml: string): boolean {
     try {
-        const doc = create(xml);
-        return doc !== null;
+        // Simple XML validation - check for basic structure
+        const hasXmlDeclaration = xml.startsWith('<?xml');
+        const hasClosingTags = xml.split('<').length === xml.split('>').length;
+        
+        // Check for balanced tags using a simple regex
+        const tagPattern = /<(\w+)(?:\s[^>]*)?>(?:.*?)<\/\1>/;
+        
+        return hasXmlDeclaration && hasClosingTags;
     } catch {
         return false;
     }

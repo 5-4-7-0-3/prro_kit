@@ -30,14 +30,31 @@ export interface DateTimeOptions {
 }
 
 /**
+ * Отримує поточний UTC час з українським offset
+ * Використовується для синхронізації часу між серверами в різних часових поясах
+ */
+function getUkraineTime(isoString?: string): dayjs.Dayjs {
+    // Завжди працюємо з UTC та додаємо український offset
+    const baseTime = isoString ? dayjs.utc(isoString) : dayjs.utc();
+
+    // Український час - це UTC+2 (зимовий) або UTC+3 (літній)
+    // Для PRRO використовуємо фіксований offset UTC+2 взимку та UTC+3 влітку
+    // Визначаємо чи зараз літній час в Україні
+    const ukraineTime = baseTime.tz('Europe/Kyiv');
+
+    return ukraineTime;
+}
+
+/**
  * Повертає відформатовану дату/час для PRRO документів
  * @param opts - Опції форматування
  * @returns Відформатована дата/час
  */
 export function getDateTime(opts: DateTimeOptions = {}): string {
-    const { format = 'default', isoString, timeZone = 'Europe/Kyiv' } = opts;
+    const { format = 'default', isoString } = opts;
 
-    const dt = isoString ? dayjs(isoString).tz(timeZone) : dayjs().tz(timeZone);
+    // Завжди використовуємо український час незалежно від розташування сервера
+    const dt = getUkraineTime(isoString);
     const selectedFormat = PRRO_DATE_FORMATS[format as DateFormat] ?? format;
 
     return dt.format(selectedFormat);

@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { getCurrentPRRODate, getCurrentPRROTime } from './dateTimeKit';
+import { getCurrentPRRODate, getCurrentPRROTime, getDateTime } from './dateTimeKit';
 
 /**
  * Опції для створення метаданих документа
@@ -8,7 +8,6 @@ export interface CreateMetaOptions {
     isTestMode?: boolean;
     uuidFn?: () => string;
     isoString?: string;
-    timeZone?: string;
 }
 
 /**
@@ -20,6 +19,7 @@ export interface MetaData {
     time: string;
     testing: boolean;
     timestamp: Date;
+    timestampFormatted: string;
 }
 
 /**
@@ -31,13 +31,21 @@ export function createMeta(opts: CreateMetaOptions = {}): MetaData {
     const { isTestMode = false, uuidFn = uuidv4, isoString } = opts;
 
     const timestamp = isoString ? new Date(isoString) : new Date();
+    
+    // Отримуємо дату та час в українському часовому поясі
+    const date = getCurrentPRRODate();
+    const time = getCurrentPRROTime();
+    
+    // Форматуємо timestamp для PRRO у форматі DD.MM.YYYY HH:mm:ss
+    const timestampFormatted = getDateTime({ format: 'default', isoString: timestamp.toISOString() });
 
     return {
         uid: uuidFn(),
-        date: getCurrentPRRODate(),
-        time: getCurrentPRROTime(),
+        date,
+        time,
         testing: isTestMode,
         timestamp,
+        timestampFormatted,
     };
 }
 
@@ -57,12 +65,11 @@ export function isValidUID(uid: string): boolean {
  * @returns Детерміністичний UID
  */
 export function createTestUID(seed: string = 'test'): string {
-    // Простий хеш для створення консистентного UUID в тестах
     let hash = 0;
     for (let i = 0; i < seed.length; i++) {
         const char = seed.charCodeAt(i);
         hash = (hash << 5) - hash + char;
-        hash = hash & hash; // Convert to 32bit integer
+        hash = hash & hash; 
     }
 
     const hex = Math.abs(hash).toString(16).padStart(8, '0');

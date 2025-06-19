@@ -32,7 +32,6 @@ export class OnlineDocumentBuilder extends PRROBuilder {
         const head = {
             UID: meta.uid,
             TIN: this.shift.tin,
-            IPN: this.shift.ipn || '',
             ORGNM: this.shift.orgName,
             POINTNM: this.shift.taxObjectsName,
             POINTADDR: this.shift.address,
