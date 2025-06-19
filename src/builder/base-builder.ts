@@ -109,6 +109,25 @@ export class PRROBuilder {
     }
 
     /**
+     * Форматує товарні позиції для PRRO з правильним форматуванням чисел
+     * @param lines - Масив товарних позицій
+     * @returns Відформатовані позиції
+     */
+    private formatReceiptLines(lines: ReceiptLine[]): any[] {
+        return lines.map((line) => ({
+            ROWNUM: line.ROWNUM,
+            CODE: line.CODE,
+            NAME: line.NAME,
+            UNITNM: line.UNITNM,
+            AMOUNT: line.AMOUNT.toFixed(3), // Кількість з 3 знаками після коми
+            PRICE: line.PRICE.toFixed(2), // Ціна з 2 знаками після коми
+            COST: line.COST.toFixed(2), // Сума з 2 знаками після коми
+            ...(line.UKTZED && { UKTZED: line.UKTZED }),
+            ...(line.LETTERS && { LETTERS: line.LETTERS }),
+        }));
+    }
+
+    /**
      * Створює XML документ чека продажу
      * @param lines - Масив товарних позицій
      * @param payment - Дані оплати
@@ -176,10 +195,13 @@ export class PRROBuilder {
             },
         ];
 
+        // Форматуємо товарні позиції з правильним форматуванням чисел
+        const formattedLines = this.formatReceiptLines(lines);
+
         const bodySections = {
             CHECKTOTAL: { SUM: totalAmount.toFixed(2) },
             CHECKPAY: paymentSection,
-            CHECKBODY: lines,
+            CHECKBODY: formattedLines,
         };
 
         return {
@@ -257,10 +279,12 @@ export class PRROBuilder {
             },
         ];
 
+        const formattedLines = this.formatReceiptLines(lines);
+
         const bodySections = {
             CHECKTOTAL: { SUM: totalAmount.toFixed(2) },
             CHECKPAY: paymentSection,
-            CHECKBODY: lines,
+            CHECKBODY: formattedLines,
         };
 
         return {

@@ -1,5 +1,3 @@
-import { create } from 'xmlbuilder2';
-
 /**
  * Створює XML-документ з вказаною структурою для PRRO
  * @param rootName - Назва кореневого елементу (CHECK, ZREP)
@@ -18,7 +16,7 @@ export function buildXml(
         // Build XML manually to avoid xmlbuilder2 namespace issues
         let xml = `<?xml version="1.0" encoding="windows-1251"?>`;
         xml += `<${rootName} xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="${rootName.toLowerCase()}01.xsd">`;
-        
+
         // Add header
         xml += `<${headTag}>`;
         Object.entries(headData).forEach(([key, value]) => {
@@ -27,15 +25,22 @@ export function buildXml(
             }
         });
         xml += `</${headTag}>`;
-        
+
         if (bodySections) {
             Object.entries(bodySections).forEach(([sectionName, content]) => {
                 xml += `<${sectionName}>`;
-                
+
                 if (Array.isArray(content)) {
                     content.forEach((item) => {
-                        xml += '<ROW>';
-                        Object.entries(item).forEach(([field, val]) => {
+                        const { ROWNUM, ...itemData } = item;
+
+                        if (ROWNUM !== undefined && ROWNUM !== null) {
+                            xml += `<ROW ROWNUM="${escapeXml(String(ROWNUM))}">`;
+                        } else {
+                            xml += '<ROW>';
+                        }
+
+                        Object.entries(itemData).forEach(([field, val]) => {
                             if (val !== undefined && val !== null) {
                                 xml += `<${field}>${escapeXml(String(val))}</${field}>`;
                             }
@@ -49,11 +54,11 @@ export function buildXml(
                         }
                     });
                 }
-                
+
                 xml += `</${sectionName}>`;
             });
         }
-        
+
         xml += `</${rootName}>`;
         return xml;
     } catch (error) {
@@ -83,10 +88,10 @@ export function isValidXML(xml: string): boolean {
         // Simple XML validation - check for basic structure
         const hasXmlDeclaration = xml.startsWith('<?xml');
         const hasClosingTags = xml.split('<').length === xml.split('>').length;
-        
+
         // Check for balanced tags using a simple regex
         const tagPattern = /<(\w+)(?:\s[^>]*)?>(?:.*?)<\/\1>/;
-        
+
         return hasXmlDeclaration && hasClosingTags;
     } catch {
         return false;
