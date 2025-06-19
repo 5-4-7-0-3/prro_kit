@@ -91,6 +91,18 @@ export interface RefundData {
 }
 
 /**
+ * Дані про форму оплати для Z-звіту
+ */
+export interface PaymentFormData {
+    /** Код форми оплати (0 - готівка, 1 - картка) */
+    payFormCode: number;
+    /** Назва форми оплати */
+    payFormName: string;
+    /** Сума по формі оплати */
+    sum: number;
+}
+
+/**
  * Дані для Z-звіту
  */
 export interface ZReportData {
@@ -106,6 +118,8 @@ export interface ZReportData {
     serviceInput?: number;
     /** Службова видача */
     serviceOutput?: number;
+    /** Розподіл по формах оплати */
+    paymentForms?: PaymentFormData[];
 }
 
 /**

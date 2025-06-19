@@ -48,8 +48,23 @@ export function buildXml(
                         xml += '</ROW>';
                     });
                 } else if (typeof content === 'object' && content !== null) {
+                    // Обробка вкладених об'єктів
                     Object.entries(content).forEach(([key, value]) => {
-                        if (value !== undefined && value !== null) {
+                        if (key === 'PAYFORMS' && Array.isArray(value)) {
+                            // Спеціальна обробка для PAYFORMS
+                            xml += `<PAYFORMS>`;
+                            value.forEach((item) => {
+                                const { ROWNUM, ...itemData } = item;
+                                xml += `<ROW ROWNUM="${escapeXml(String(ROWNUM))}">`;
+                                Object.entries(itemData).forEach(([field, val]) => {
+                                    if (val !== undefined && val !== null) {
+                                        xml += `<${field}>${escapeXml(String(val))}</${field}>`;
+                                    }
+                                });
+                                xml += '</ROW>';
+                            });
+                            xml += `</PAYFORMS>`;
+                        } else if (value !== undefined && value !== null) {
                             xml += `<${key}>${escapeXml(String(value))}</${key}>`;
                         }
                     });

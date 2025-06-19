@@ -20,7 +20,11 @@ export class OnlineDocumentBuilder extends PRROBuilder {
      *   salesCount: 25,
      *   refundsCount: 2,
      *   serviceInput: 1000.00,
-     *   serviceOutput: 500.00
+     *   serviceOutput: 500.00,
+     *   paymentForms: [
+     *     { payFormCode: 0, payFormName: 'ГОТІВКА', sum: 2000.00 },
+     *     { payFormCode: 1, payFormName: 'КАРТКА', sum: 3000.00 }
+     *   ]
      * };
      *
      * const zReport = builder.buildZReport(zReportData);
@@ -45,9 +49,18 @@ export class OnlineDocumentBuilder extends PRROBuilder {
             ...(this.testing && { TESTING: 1 }),
         };
 
+        // Формуємо підсумки по формах оплати для реалізації
+        const realizPayforms = data.paymentForms?.map((form, index) => ({
+            ROWNUM: (index + 1).toString(),
+            PAYFORMCD: form.payFormCode,
+            PAYFORMNM: form.payFormName,
+            SUM: form.sum.toFixed(2),
+        }));
+
         const realizSection = {
             SUM: data.totalSales.toFixed(2),
             ORDERSCNT: data.salesCount,
+            ...(realizPayforms && realizPayforms.length > 0 && { PAYFORMS: realizPayforms }),
         };
 
         const returnSection =
@@ -59,8 +72,8 @@ export class OnlineDocumentBuilder extends PRROBuilder {
                 : undefined;
 
         const bodySection = {
-            SERVICEINPUT: data.serviceInput?.toFixed(2),
-            SERVICEOUTPUT: data.serviceOutput?.toFixed(2),
+            SERVICEINPUT: (data.serviceInput || 0).toFixed(2),
+            SERVICEOUTPUT: (data.serviceOutput || 0).toFixed(2),
         };
 
         const bodySections = {

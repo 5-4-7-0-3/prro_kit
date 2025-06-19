@@ -10,6 +10,7 @@ export type {
     PaymentData,
     RefundData,
     ZReportData,
+    PaymentFormData,
     ValidationResult,
     XMLDocumentResult,
     DocumentType,
