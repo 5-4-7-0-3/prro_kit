@@ -13,11 +13,9 @@ export function buildXml(
     bodySections?: Record<string, any>,
 ): string {
     try {
-        // Build XML manually to avoid xmlbuilder2 namespace issues
         let xml = `<?xml version="1.0" encoding="windows-1251"?>`;
         xml += `<${rootName} xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="${rootName.toLowerCase()}01.xsd">`;
 
-        // Add header
         xml += `<${headTag}>`;
         Object.entries(headData).forEach(([key, value]) => {
             if (value !== undefined && value !== null) {
@@ -48,7 +46,6 @@ export function buildXml(
                         xml += '</ROW>';
                     });
                 } else if (typeof content === 'object' && content !== null) {
-                    // Обробка вкладених об'єктів
                     Object.entries(content).forEach(([key, value]) => {
                         if (key === 'PAYFORMS' && Array.isArray(value)) {
                             // Спеціальна обробка для PAYFORMS
@@ -100,12 +97,8 @@ function escapeXml(str: string): string {
  */
 export function isValidXML(xml: string): boolean {
     try {
-        // Simple XML validation - check for basic structure
         const hasXmlDeclaration = xml.startsWith('<?xml');
         const hasClosingTags = xml.split('<').length === xml.split('>').length;
-
-        // Check for balanced tags using a simple regex
-        const tagPattern = /<(\w+)(?:\s[^>]*)?>(?:.*?)<\/\1>/;
 
         return hasXmlDeclaration && hasClosingTags;
     } catch {

@@ -120,6 +120,8 @@ export interface ZReportData {
     serviceOutput?: number;
     /** Розподіл по формах оплати */
     paymentForms?: PaymentFormData[];
+    /** Розподіл по формах оплати для повернень */
+    refundPaymentForms?: PaymentFormData[];
 }
 
 /**

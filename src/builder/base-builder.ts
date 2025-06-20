@@ -195,7 +195,6 @@ export class PRROBuilder {
             },
         ];
 
-        // Форматуємо товарні позиції з правильним форматуванням чисел
         const formattedLines = this.formatReceiptLines(lines);
 
         const bodySections = {

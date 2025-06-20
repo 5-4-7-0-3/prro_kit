@@ -31,11 +31,11 @@ export function createMeta(opts: CreateMetaOptions = {}): MetaData {
     const { isTestMode = false, uuidFn = uuidv4, isoString } = opts;
 
     const timestamp = isoString ? new Date(isoString) : new Date();
-    
+
     // Отримуємо дату та час в українському часовому поясі
     const date = getCurrentPRRODate();
     const time = getCurrentPRROTime();
-    
+
     // Форматуємо timestamp для PRRO у форматі DD.MM.YYYY HH:mm:ss
     const timestampFormatted = getDateTime({ format: 'default', isoString: timestamp.toISOString() });
 
@@ -69,7 +69,7 @@ export function createTestUID(seed: string = 'test'): string {
     for (let i = 0; i < seed.length; i++) {
         const char = seed.charCodeAt(i);
         hash = (hash << 5) - hash + char;
-        hash = hash & hash; 
+        hash = hash & hash;
     }
 
     const hex = Math.abs(hash).toString(16).padStart(8, '0');

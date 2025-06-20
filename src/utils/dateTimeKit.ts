@@ -53,7 +53,6 @@ function getUkraineTime(isoString?: string): dayjs.Dayjs {
 export function getDateTime(opts: DateTimeOptions = {}): string {
     const { format = 'default', isoString } = opts;
 
-    // Завжди використовуємо український час незалежно від розташування сервера
     const dt = getUkraineTime(isoString);
     const selectedFormat = PRRO_DATE_FORMATS[format as DateFormat] ?? format;
 
