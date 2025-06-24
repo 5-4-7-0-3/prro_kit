@@ -1,7 +1,9 @@
 import { PRROBuilder, OnlineDocumentBuilder, OfflineDocumentBuilder } from './builder';
 import { createPRROApiClient, PRROApiClient } from './client';
-import { ShiftData, ValidationResult, ReceiptLine, PaymentData } from './core';
+import { ShiftData, ValidationResult, ReceiptLine, PaymentData, OfflineSessionData } from './core';
+import { createOfflinePackage } from './utils';
 import { PRROValidator } from './validator';
+import { OfflineValidator } from './validator/offline-validator';
 
 // Core types and constants
 export type {
@@ -16,7 +18,17 @@ export type {
     DocumentType,
     PaymentMethod,
     DocumentSubtype,
-} from './core/types';
+    // Offline types
+    OfflineSessionData,
+    OfflineDocument,
+    OfflinePackage,
+    ControlNumberData,
+    OfflineSessionStats,
+    OfflineConfig,
+    OfflineValidationResult,
+} from './core';
+
+export { OfflineDocumentType } from './core/offline-types';
 
 export {
     PRRO_CONSTANTS,
@@ -32,8 +44,9 @@ export { PRROBuilder } from './builder/base-builder';
 export { OnlineDocumentBuilder } from './builder/online-builder';
 export { OfflineDocumentBuilder } from './builder/offline-builder';
 
-// Validator
+// Validators
 export { PRROValidator } from './validator/validator';
+export { OfflineValidator } from './validator/offline-validator';
 
 // API Client
 export { PRROApiClient, createPRROApiClient } from './client';
@@ -78,10 +91,21 @@ export {
     sanitizeXMLString,
 } from './utils';
 
-/**
- * Версія бібліотеки
- */
-export const VERSION = '0.2.0';
+// Offline utilities
+export {
+    crc32,
+    sha256,
+    calculateControlNumber,
+    formatOfflineFiscalNumber,
+    parseOfflineFiscalNumber,
+    isOfflineFiscalNumber,
+    calculateOfflineSessionStats,
+    formatDuration,
+    createOfflinePackage,
+    parseOfflinePackage,
+    canContinueOfflineSession,
+    getOfflineWarnings,
+} from './utils/offlineUtils';
 
 /**
  * Створює білдер для PRRO документів
@@ -116,24 +140,36 @@ export function createOnlineBuilder(shift: ShiftData, testMode: boolean = false)
 /**
  * Створює білдер для офлайн документів
  * @param shift - Дані зміни
+ * @param offlineSession - Дані офлайн сесії (опціонально)
  * @param testMode - Увімкнути тестовий режим (за замовчуванням false)
  * @returns Налаштований офлайн білдер
  * @example
  * ```typescript
- * const builder = createOfflineBuilder(shift);
+ * const offlineSession: OfflineSessionData = {
+ *   offlineSessionId: 82563,
+ *   offlineSeed: 179625192271939,
+ *   startTime: new Date()
+ * };
+ *
+ * const builder = createOfflineBuilder(shift, offlineSession);
  *
  * // Початок офлайн сесії
  * const beginOffline = builder.buildOfflineBegin();
  *
  * // Офлайн чек
- * const receipt = builder.buildOfflineReceipt(lines, payment, '123456789');
+ * const receipt = builder.buildOfflineReceipt(lines, payment);
  *
  * // Завершення офлайн сесії
  * const endOffline = builder.buildOfflineEnd();
  * ```
  */
-export function createOfflineBuilder(shift: ShiftData, testMode: boolean = false): OfflineDocumentBuilder {
-    return new OfflineDocumentBuilder(shift).setTestMode(testMode);
+export function createOfflineBuilder(
+    shift: ShiftData,
+    offlineSession?: OfflineSessionData,
+    testMode: boolean = false,
+): OfflineDocumentBuilder {
+    const builder = new OfflineDocumentBuilder(shift, offlineSession);
+    return builder.setTestMode(testMode);
 }
 
 /**
@@ -164,18 +200,77 @@ export function quickValidateReceipt(lines: ReceiptLine[], payment: PaymentData)
     return validator.validateReceipt(lines, payment);
 }
 
+/**
+ * Швидка валідація офлайн сесії
+ * @param session - Дані офлайн сесії
+ * @returns Результат валідації з масивом помилок та попереджень
+ * @example
+ * ```typescript
+ * const validation = quickValidateOfflineSession(session);
+ * if (!validation.isValid) {
+ *   console.error('Помилки:', validation.errors);
+ * }
+ * if (validation.warnings) {
+ *   console.warn('Попередження:', validation.warnings);
+ * }
+ * ```
+ */
+export function quickValidateOfflineSession(session: OfflineSessionData): ValidationResult {
+    const validator = new OfflineValidator();
+    const result = validator.validateOfflineSession(session);
+    return {
+        isValid: result.isValid,
+        errors: [...result.errors, ...(result.warnings || [])],
+    };
+}
+
+/**
+ * Створює офлайн пакет для відправки на сервер
+ * @param documents - Масив XML документів (рядки)
+ * @returns Base64 закодований пакет
+ * @example
+ * ```typescript
+ * const builder = createOfflineBuilder(shift, session);
+ * // ... створення документів ...
+ *
+ * const docs = builder.getOfflineDocuments();
+ * const xmlDocs = docs.map(d => d.xml);
+ * const packageBase64 = createOfflinePackageBase64(xmlDocs);
+ *
+ * // Відправка пакету
+ * const client = createPRROApiClient();
+ * await client.pck(packageBase64);
+ * ```
+ */
+export function createOfflinePackageBase64(documents: string[]): string {
+    const base64Docs = documents.map((xml) => Buffer.from(xml).toString('base64'));
+    const packageBuffer = createOfflinePackage(base64Docs);
+    return packageBuffer.toString('base64');
+}
+
 // Default export для зручності
 export default {
+    // Builders
     createPRROBuilder,
     createOnlineBuilder,
     createOfflineBuilder,
+
+    // API
     createPRROApiClient,
+
+    // Validation
     quickValidateShift,
     quickValidateReceipt,
+    quickValidateOfflineSession,
+
+    // Utilities
+    createOfflinePackageBase64,
+
+    // Classes
     PRROBuilder,
     OnlineDocumentBuilder,
     OfflineDocumentBuilder,
     PRROApiClient,
     PRROValidator,
-    VERSION,
+    OfflineValidator,
 };

@@ -26,3 +26,5 @@ export {
     isValidItemName,
     sanitizeXMLString,
 } from '../validator/validation';
+
+export * from './offlineUtils';
