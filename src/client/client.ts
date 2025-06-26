@@ -5,7 +5,7 @@ import axios, { AxiosInstance, AxiosError } from 'axios';
  *
  * @example
  * ```typescript
- * import { PRROApiClient } from 'robol_prro_kit';
+ * import { PRROApiClient } from 'prro_kit';
  *
  * const client = new PRROApiClient();
  *

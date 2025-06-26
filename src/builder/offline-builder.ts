@@ -17,6 +17,7 @@ import {
     calculateOfflineSessionStats,
     canContinueOfflineSession,
 } from '../utils/offlineUtils';
+import { OnlineDocumentBuilder } from './online-builder';
 
 /**
  * Білдер для створення офлайн PRRO документів
@@ -363,7 +364,7 @@ export class OfflineDocumentBuilder extends PRROBuilder {
         );
 
         // Створюємо Z-звіт (використовуємо OnlineDocumentBuilder функціональність)
-        const onlineBuilder = new (require('./online-builder').OnlineDocumentBuilder)(this.shift);
+        const onlineBuilder = new OnlineDocumentBuilder(this.shift);
         onlineBuilder.setTestMode(this.testing);
         const zReport = onlineBuilder.buildZReport(data);
 
@@ -434,7 +435,7 @@ export class OfflineDocumentBuilder extends PRROBuilder {
             const packageDocs = documents.slice(i, i + maxPackageSize);
             const package_: OfflinePackage = {
                 documents: packageDocs,
-                sessionId: this.offlineSession?.offlineSessionId || 0,
+                sessionId: this.offlineSession?.offlineSessionId || '',
                 createdAt: new Date(),
             };
             packages.push(package_);

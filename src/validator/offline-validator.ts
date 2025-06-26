@@ -19,16 +19,6 @@ export class OfflineValidator {
         const errors: string[] = [];
         const warnings: string[] = [];
 
-        // Валідація ідентифікатора сесії
-        if (!session.offlineSessionId || session.offlineSessionId <= 0) {
-            errors.push('Ідентифікатор офлайн сесії повинен бути додатнім числом');
-        }
-
-        // Валідація секретного числа
-        if (!session.offlineSeed || session.offlineSeed <= 0) {
-            errors.push('Секретне число офлайн сесії повинно бути додатнім');
-        }
-
         // Валідація часу початку
         if (session.startTime && !(session.startTime instanceof Date)) {
             errors.push('Час початку сесії повинен бути валідною датою');

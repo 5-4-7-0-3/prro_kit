@@ -88,7 +88,7 @@ export function calculateControlNumber(data: ControlNumberData): number {
  * @param controlNumber - Контрольне число
  * @returns Фіскальний номер офлайн документа
  */
-export function formatOfflineFiscalNumber(sessionId: number, localNum: number, controlNumber: number): string {
+export function formatOfflineFiscalNumber(sessionId: string, localNum: number, controlNumber: number): string {
     return `${sessionId}.${localNum}.${controlNumber}`;
 }
 
@@ -161,7 +161,7 @@ export function calculateOfflineSessionStats(
     }
 
     return {
-        sessionId: 0, // буде встановлено пізніше
+        sessionId: '',
         currentDuration,
         monthlyDuration: totalMonthlyDuration,
         documentsCount,

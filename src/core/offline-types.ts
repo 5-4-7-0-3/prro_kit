@@ -7,9 +7,9 @@
  */
 export interface OfflineSessionData {
     /** Ідентифікатор офлайн сесії */
-    offlineSessionId: number;
+    offlineSessionId: string;
     /** Секретне число для обчислення фіскального номера */
-    offlineSeed: number;
+    offlineSeed: string;
     /** Початок офлайн сесії */
     startTime?: Date;
     /** Кінець офлайн сесії */
@@ -75,7 +75,7 @@ export interface OfflinePackage {
     /** Масив офлайн документів */
     documents: OfflineDocument[];
     /** Ідентифікатор офлайн сесії */
-    sessionId: number;
+    sessionId: string;
     /** Загальний розмір пакету в байтах */
     size?: number;
     /** Дата створення пакету */
@@ -87,7 +87,7 @@ export interface OfflinePackage {
  */
 export interface ControlNumberData {
     /** Секретне число */
-    offlineSeed: number;
+    offlineSeed: string;
     /** Дата документа (ДДММРРРР) */
     date: string;
     /** Час документа (ГГХХСС) */
@@ -109,7 +109,7 @@ export interface ControlNumberData {
  */
 export interface OfflineSessionStats {
     /** Ідентифікатор сесії */
-    sessionId: number;
+    sessionId: string;
     /** Тривалість поточної сесії в хвилинах */
     currentDuration: number;
     /** Загальна тривалість за місяць в хвилинах */

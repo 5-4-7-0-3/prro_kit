@@ -1,5 +1,5 @@
 {
-    "name": "robol_prro_kit",
+    "name": "prro_kit",
     "version": "0.2.0",
     "description": "Бібліотека для генерування XML-документів PRRO/Library for generating XML documents from PRRO.",
     "main": "dist/index.js",
@@ -51,15 +51,15 @@
         "чек",
         "податки"
     ],
-    "author": "Robol Prro Kit Team",
+    "author": "5-4-7-0-3",
     "license": "MIT",
     "repository": {
         "type": "git",
-        "url": "https://github.com/KanRobotics/robol_prro_kit"
+        "url": "https://github.com/KanRobotics/prro_kit"
     },
-    "homepage": "https://github.com/KanRobotics/robol_prro_kit#readme",
+    "homepage": "https://github.com/KanRobotics/prro_kit#readme",
     "bugs": {
-        "url": "https://github.com/KanRobotics/robol_prro_kit/issues"
+        "url": "https://github.com/KanRobotics/prro_kit/issues"
     },
     "engines": {
         "node": ">=16.0.0"

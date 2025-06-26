@@ -1,6 +1,6 @@
-# Robol PRRO Kit
+# PRRO Kit
 
-**Robol PRRO Kit** — це TypeScript бібліотека для генерування XML-документів PRRO (Програмно-реєстраційні розрахункові операції) згідно з українським законодавством. Бібліотека дозволяє легко створювати фіскальні документи та взаємодіяти з фіскальним сервером.
+** PRRO Kit** — це TypeScript бібліотека для генерування XML-документів PRRO (Програмно-реєстраційні розрахункові операції) згідно з українським законодавством. Бібліотека дозволяє легко створювати фіскальні документи та взаємодіяти з фіскальним сервером.
 
 ## Особливості
 
@@ -15,11 +15,11 @@
 ## Встановлення
 
 ```bash
-npm install robol_prro_kit
+npm install prro_kit
 ```
 
 ```bash
-yarn add robol_prro_kit
+yarn add prro_kit
 ```
 
 ## Швидкий старт
@@ -27,7 +27,7 @@ yarn add robol_prro_kit
 ### Базове використання
 
 ```typescript
-import { createPRROBuilder, ShiftData, ReceiptLine, PaymentData } from 'robol_prro_kit';
+import { createPRROBuilder, ShiftData, ReceiptLine, PaymentData } from 'prro_kit';
 
 // Дані зміни
 const shiftData: ShiftData = {
@@ -125,7 +125,7 @@ const refund = builder.buildRefund(
 ### Онлайн режим
 
 ```typescript
-import { createOnlineBuilder, ZReportData } from 'robol_prro_kit';
+import { createOnlineBuilder, ZReportData } from 'prro_kit';
 
 const onlineBuilder = createOnlineBuilder(shiftData);
 
@@ -145,7 +145,7 @@ const zReport = onlineBuilder.buildZReport(zReportData);
 ### Офлайн режим
 
 ```typescript
-import { createOfflineBuilder } from 'robol_prro_kit';
+import { createOfflineBuilder } from 'prro_kit';
 
 const offlineBuilder = createOfflineBuilder(shiftData);
 
@@ -168,7 +168,7 @@ const endOffline = offlineBuilder.buildOfflineEnd();
 ### Відправка документів на фіскальний сервер
 
 ```typescript
-import { createPRROApiClient } from 'robol_prro_kit';
+import { createPRROApiClient } from 'prro_kit';
 
 const client = createPRROApiClient();
 // або з кастомним URL: createPRROApiClient('https://custom-server.com/fs');
@@ -218,7 +218,7 @@ console.log('ID офлайн сесії:', response.OfflineSessionId);
 Всі білдери автоматично валідують дані при створенні документів:
 
 ```typescript
-import { BuilderError } from 'robol_prro_kit';
+import { BuilderError } from 'prro_kit';
 
 try {
     const receipt = builder.buildReceipt(invalidLines, invalidPayment);
@@ -232,7 +232,7 @@ try {
 ### Ручна валідація
 
 ```typescript
-import { quickValidateShift, quickValidateReceipt, PRROValidator } from 'robol_prro_kit';
+import { quickValidateShift, quickValidateReceipt, PRROValidator } from 'prro_kit';
 
 // Швидка валідація
 const shiftValidation = quickValidateShift(shiftData);
@@ -255,7 +255,7 @@ const result = validator.validateShift(shiftData);
 ### Робота з датами
 
 ```typescript
-import { getCurrentPRRODate, getCurrentPRROTime, getDateTime, PRRO_DATE_FORMATS } from 'robol_prro_kit';
+import { getCurrentPRRODate, getCurrentPRROTime, getDateTime, PRRO_DATE_FORMATS } from 'prro_kit';
 
 // Поточна дата в форматі PRRO
 const date = getCurrentPRRODate(); // "17062025"
@@ -271,7 +271,7 @@ const formatted = getDateTime({
 ### Валідація даних
 
 ```typescript
-import { isValidTIN, isValidAmount, isValidQuantity, formatAmount, formatQuantity } from 'robol_prro_kit';
+import { isValidTIN, isValidAmount, isValidQuantity, formatAmount, formatQuantity } from 'prro_kit';
 
 // Валідація
 const isValidTax = isValidTIN('1234567890'); // true
@@ -288,7 +288,7 @@ const formattedQty = formatQuantity(2.5); // "2.500"
 ### Повний цикл роботи
 
 ```typescript
-import { createPRROBuilder, createPRROApiClient, ShiftData, ReceiptLine, PaymentData } from 'robol_prro_kit';
+import { createPRROBuilder, createPRROApiClient, ShiftData, ReceiptLine, PaymentData } from 'prro_kit';
 
 async function fullWorkflow() {
     // Налаштування
@@ -329,7 +329,7 @@ async function fullWorkflow() {
 ### Обробка помилок
 
 ```typescript
-import { PRROError, ValidationError, XMLError, BuilderError } from 'robol_prro_kit';
+import { PRROError, ValidationError, XMLError, BuilderError } from 'prro_kit';
 
 try {
     const receipt = builder.buildReceipt(lines, payment);
@@ -414,7 +414,7 @@ interface PaymentData {
 ### Константи
 
 ```typescript
-import { DOC_TYPES, PAYMENT_TYPES, PRRO_CONSTANTS } from 'robol_prro_kit';
+import { DOC_TYPES, PAYMENT_TYPES, PRRO_CONSTANTS } from 'prro_kit';
 
 // Типи документів
 DOC_TYPES.RECEIPT; // 0 - Чек
