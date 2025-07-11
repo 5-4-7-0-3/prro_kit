@@ -85,7 +85,7 @@ export class OfflineDocumentBuilder extends PRROBuilder {
             VER: 1,
             ORDERTAXNUM: fiscalNumber,
             OFFLINE: true,
-            ...(revokeLastOnlineDoc && { REVOKELASTONLINEDOC: 'true' }),
+            REVOKELASTONLINEDOC: revokeLastOnlineDoc ? true : false,
             ...(this.testing && { TESTING: 1 }),
         };
 
@@ -129,6 +129,116 @@ export class OfflineDocumentBuilder extends PRROBuilder {
         );
         const head = {
             DOCTYPE: DOC_TYPES.OFFLINE_END,
+            UID: meta.uid,
+            TIN: this.shift.tin,
+            ORGNM: this.shift.orgName,
+            POINTNM: this.shift.taxObjectsName,
+            POINTADDR: this.shift.address,
+            ORDERDATE: meta.date,
+            ORDERTIME: meta.time,
+            ORDERNUM: this.shift.orderNum,
+            CASHDESKNUM: this.shift.numLocal,
+            CASHREGISTERNUM: this.shift.numFiscal,
+            CASHIER: this.shift.cashier,
+            VER: 1,
+            ORDERTAXNUM: fiscalNumber,
+            OFFLINE: true,
+            ...(this.testing && { TESTING: 1 }),
+        };
+
+        const xml = buildXml('CHECK', 'CHECKHEAD', head);
+
+        const offlineDoc: OfflineDocument = {
+            docType: OfflineDocumentType.OFFLINE_END,
+            xml,
+            uid: meta.uid,
+            localNum: this.shift.orderNum,
+            offlineLocalNum: offlineLocalNum,
+            createdAt: new Date(),
+        };
+
+        this.offlineDocuments.push(offlineDoc);
+        return { xml, uid: meta.uid };
+    }
+
+    buildOfflineOpenTillShift(): XMLDocumentResult {
+        const meta = createMeta({ isTestMode: this.testing });
+        const offlineLocalNum = this.getNextOfflineLocalNum();
+        const currentLocalNum = offlineLocalNum;
+
+        const controlNumberData: ControlNumberData = {
+            offlineSeed: this.offlineSession!.offlineSeed,
+            date: meta.date,
+            time: meta.time,
+            localNum: currentLocalNum,
+            fiscalNum: this.shift.numFiscal,
+            localRegNum: String(this.shift.numLocal),
+            ...(this.lastDocHash && { prevDocHash: this.lastDocHash }),
+        };
+
+        const controlNumber = calculateControlNumber(controlNumberData);
+        const fiscalNumber = formatOfflineFiscalNumber(
+            this.offlineSession!.offlineSessionId,
+            offlineLocalNum,
+            controlNumber,
+        );
+        const head = {
+            DOCTYPE: DOC_TYPES.OPEN_SHIFT,
+            UID: meta.uid,
+            TIN: this.shift.tin,
+            ORGNM: this.shift.orgName,
+            POINTNM: this.shift.taxObjectsName,
+            POINTADDR: this.shift.address,
+            ORDERDATE: meta.date,
+            ORDERTIME: meta.time,
+            ORDERNUM: this.shift.orderNum,
+            CASHDESKNUM: this.shift.numLocal,
+            CASHREGISTERNUM: this.shift.numFiscal,
+            CASHIER: this.shift.cashier,
+            VER: 1,
+            ORDERTAXNUM: fiscalNumber,
+            OFFLINE: true,
+            ...(this.testing && { TESTING: 1 }),
+        };
+
+        const xml = buildXml('CHECK', 'CHECKHEAD', head);
+
+        const offlineDoc: OfflineDocument = {
+            docType: OfflineDocumentType.OFFLINE_END,
+            xml,
+            uid: meta.uid,
+            localNum: this.shift.orderNum,
+            offlineLocalNum: offlineLocalNum,
+            createdAt: new Date(),
+        };
+
+        this.offlineDocuments.push(offlineDoc);
+        return { xml, uid: meta.uid };
+    }
+
+    buildOfflineCloseTillShift(): XMLDocumentResult {
+        const meta = createMeta({ isTestMode: this.testing });
+        const offlineLocalNum = this.getNextOfflineLocalNum();
+        const currentLocalNum = offlineLocalNum;
+
+        const controlNumberData: ControlNumberData = {
+            offlineSeed: this.offlineSession!.offlineSeed,
+            date: meta.date,
+            time: meta.time,
+            localNum: currentLocalNum,
+            fiscalNum: this.shift.numFiscal,
+            localRegNum: String(this.shift.numLocal),
+            ...(this.lastDocHash && { prevDocHash: this.lastDocHash }),
+        };
+
+        const controlNumber = calculateControlNumber(controlNumberData);
+        const fiscalNumber = formatOfflineFiscalNumber(
+            this.offlineSession!.offlineSessionId,
+            offlineLocalNum,
+            controlNumber,
+        );
+        const head = {
+            DOCTYPE: DOC_TYPES.CLOSE_SHIFT,
             UID: meta.uid,
             TIN: this.shift.tin,
             ORGNM: this.shift.orgName,
