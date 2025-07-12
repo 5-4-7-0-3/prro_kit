@@ -50,17 +50,15 @@ export class OfflineDocumentBuilder extends PRROBuilder {
             this.offlineSession.nextLocalNum = 1;
         }
         const offlineLocalNum = this.getNextOfflineLocalNum();
-        // Використовуємо offlineLocalNum як локальний номер для контрольного числа
-        const currentLocalNum = offlineLocalNum;
 
         const controlNumberData: ControlNumberData = {
             offlineSeed: this.offlineSession!.offlineSeed,
             date: meta.date,
             time: meta.time,
-            localNum: currentLocalNum,
+            localNum: this.shift.orderNum, // Використовуємо локальний номер документа, а не офлайн локальний
             fiscalNum: this.shift.numFiscal,
             localRegNum: String(this.shift.numLocal),
-            ...(this.lastDocHash && { prevDocHash: this.lastDocHash }),
+            // Для документа "Початок офлайн сесії" НЕ використовуємо prevDocHash
         };
 
         const controlNumber = calculateControlNumber(controlNumberData);
@@ -85,7 +83,7 @@ export class OfflineDocumentBuilder extends PRROBuilder {
             VER: 1,
             ORDERTAXNUM: fiscalNumber,
             OFFLINE: true,
-            REVOKELASTONLINEDOC: revokeLastOnlineDoc ? true : false,
+            ...(revokeLastOnlineDoc && { REVOKED: true }),
             ...(this.testing && { TESTING: 1 }),
         };
 
@@ -109,16 +107,15 @@ export class OfflineDocumentBuilder extends PRROBuilder {
     buildOfflineEnd(): XMLDocumentResult {
         const meta = createMeta({ isTestMode: this.testing });
         const offlineLocalNum = this.getNextOfflineLocalNum();
-        const currentLocalNum = offlineLocalNum;
 
         const controlNumberData: ControlNumberData = {
             offlineSeed: this.offlineSession!.offlineSeed,
             date: meta.date,
             time: meta.time,
-            localNum: currentLocalNum,
+            localNum: offlineLocalNum, // Використовуємо локальний номер документа
             fiscalNum: this.shift.numFiscal,
             localRegNum: String(this.shift.numLocal),
-            ...(this.lastDocHash && { prevDocHash: this.lastDocHash }),
+            // Для документа "Завершення офлайн сесії" НЕ використовуємо prevDocHash
         };
 
         const controlNumber = calculateControlNumber(controlNumberData);
@@ -164,16 +161,15 @@ export class OfflineDocumentBuilder extends PRROBuilder {
     buildOfflineOpenTillShift(): XMLDocumentResult {
         const meta = createMeta({ isTestMode: this.testing });
         const offlineLocalNum = this.getNextOfflineLocalNum();
-        const currentLocalNum = offlineLocalNum;
 
         const controlNumberData: ControlNumberData = {
             offlineSeed: this.offlineSession!.offlineSeed,
             date: meta.date,
             time: meta.time,
-            localNum: currentLocalNum,
+            localNum: offlineLocalNum, // Використовуємо локальний номер документа
             fiscalNum: this.shift.numFiscal,
             localRegNum: String(this.shift.numLocal),
-            ...(this.lastDocHash && { prevDocHash: this.lastDocHash }),
+            // Для документа "Відкриття зміни" НЕ використовуємо prevDocHash
         };
 
         const controlNumber = calculateControlNumber(controlNumberData);
@@ -204,7 +200,7 @@ export class OfflineDocumentBuilder extends PRROBuilder {
         const xml = buildXml('CHECK', 'CHECKHEAD', head);
 
         const offlineDoc: OfflineDocument = {
-            docType: OfflineDocumentType.OFFLINE_END,
+            docType: OfflineDocumentType.OPEN_SHIFT, // Виправлено тип документа
             xml,
             uid: meta.uid,
             localNum: this.shift.orderNum,
@@ -219,16 +215,15 @@ export class OfflineDocumentBuilder extends PRROBuilder {
     buildOfflineCloseTillShift(): XMLDocumentResult {
         const meta = createMeta({ isTestMode: this.testing });
         const offlineLocalNum = this.getNextOfflineLocalNum();
-        const currentLocalNum = offlineLocalNum;
 
         const controlNumberData: ControlNumberData = {
             offlineSeed: this.offlineSession!.offlineSeed,
             date: meta.date,
             time: meta.time,
-            localNum: currentLocalNum,
+            localNum: offlineLocalNum, // Використовуємо локальний номер документа
             fiscalNum: this.shift.numFiscal,
             localRegNum: String(this.shift.numLocal),
-            ...(this.lastDocHash && { prevDocHash: this.lastDocHash }),
+            // Для документа "Закриття зміни" НЕ використовуємо prevDocHash
         };
 
         const controlNumber = calculateControlNumber(controlNumberData);
@@ -259,7 +254,7 @@ export class OfflineDocumentBuilder extends PRROBuilder {
         const xml = buildXml('CHECK', 'CHECKHEAD', head);
 
         const offlineDoc: OfflineDocument = {
-            docType: OfflineDocumentType.OFFLINE_END,
+            docType: OfflineDocumentType.CLOSE_SHIFT,
             xml,
             uid: meta.uid,
             localNum: this.shift.orderNum,
@@ -289,16 +284,16 @@ export class OfflineDocumentBuilder extends PRROBuilder {
         const meta = createMeta({ isTestMode: this.testing });
         const totalAmount = lines.reduce((sum, line) => sum + line.COST, 0);
         const offlineLocalNum = this.getNextOfflineLocalNum();
-        const currentLocalNum = offlineLocalNum;
 
         const controlNumberData: ControlNumberData = {
             offlineSeed: this.offlineSession.offlineSeed,
             date: meta.date,
             time: meta.time,
-            localNum: currentLocalNum,
+            localNum: offlineLocalNum, // Використовуємо переданий localNum або orderNum
             fiscalNum: this.shift.numFiscal,
             localRegNum: String(this.shift.numLocal),
             totalAmount,
+            // Згідно з документацією: геш попереднього документа НЕ використовується для першого фінансового документа
             ...(this.lastDocHash && !this.isFirstFinancialDoc && { prevDocHash: this.lastDocHash }),
         };
 
@@ -328,7 +323,7 @@ export class OfflineDocumentBuilder extends PRROBuilder {
             docType: OfflineDocumentType.CHECK,
             xml: xmlWithOfflineFields,
             uid: receipt.uid,
-            localNum: this.shift.orderNum,
+            localNum: localNum || this.shift.orderNum,
             offlineLocalNum,
             fiscalNum: fiscalNumber,
             controlNumber,
@@ -356,16 +351,16 @@ export class OfflineDocumentBuilder extends PRROBuilder {
         const meta = createMeta({ isTestMode: this.testing });
         const totalAmount = lines.reduce((sum, line) => sum + line.COST, 0);
         const offlineLocalNum = this.getNextOfflineLocalNum();
-        const currentLocalNum = offlineLocalNum;
 
         const controlNumberData: ControlNumberData = {
             offlineSeed: this.offlineSession.offlineSeed,
             date: meta.date,
             time: meta.time,
-            localNum: currentLocalNum,
+            localNum: offlineLocalNum, // Використовуємо переданий localNum або orderNum
             fiscalNum: this.shift.numFiscal,
             localRegNum: String(this.shift.numLocal),
             totalAmount,
+            // Згідно з документацією: геш попереднього документа НЕ використовується для першого фінансового документа
             ...(this.lastDocHash && !this.isFirstFinancialDoc && { prevDocHash: this.lastDocHash }),
         };
 
@@ -395,7 +390,7 @@ export class OfflineDocumentBuilder extends PRROBuilder {
             docType: OfflineDocumentType.RETURN_CHECK,
             xml: xmlWithOfflineFields,
             uid: refund.uid,
-            localNum: this.shift.orderNum,
+            localNum: localNum || this.shift.orderNum,
             offlineLocalNum,
             fiscalNum: fiscalNumber,
             controlNumber,
@@ -417,15 +412,15 @@ export class OfflineDocumentBuilder extends PRROBuilder {
 
         const meta = createMeta({ isTestMode: this.testing });
         const offlineLocalNum = this.getNextOfflineLocalNum();
-        const currentLocalNum = offlineLocalNum;
 
         const controlNumberData: ControlNumberData = {
             offlineSeed: this.offlineSession.offlineSeed,
             date: meta.date,
             time: meta.time,
-            localNum: currentLocalNum,
+            localNum: offlineLocalNum, // Використовуємо переданий localNum або orderNum
             fiscalNum: this.shift.numFiscal,
             localRegNum: String(this.shift.numLocal),
+            // Z-звіт є фінансово значущим документом, тому використовуємо prevDocHash якщо є
             ...(this.lastDocHash && !this.isFirstFinancialDoc && { prevDocHash: this.lastDocHash }),
         };
 
@@ -457,7 +452,7 @@ export class OfflineDocumentBuilder extends PRROBuilder {
             docType: OfflineDocumentType.Z_REPORT,
             xml: xmlWithOfflineFields,
             uid: zReport.uid,
-            localNum: this.shift.orderNum,
+            localNum: localNum || this.shift.orderNum,
             offlineLocalNum,
             fiscalNum: fiscalNumber,
             controlNumber,

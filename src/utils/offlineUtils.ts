@@ -54,15 +54,17 @@ export function calculateControlNumber(data: ControlNumberData): number {
         data.time,
         data.localNum.toString(),
         data.fiscalNum,
-        data.localRegNum,
+        data.localRegNum.toString(),
     ];
 
-    // Додаємо суму якщо є
-    if (data.totalAmount !== undefined) {
+    // Додаємо суму якщо є (тільки для чеків класу "Чек")
+    if (data.totalAmount !== undefined && data.totalAmount > 0) {
         parts.push(data.totalAmount.toFixed(2));
     }
 
     // Додаємо геш попереднього документа якщо є
+    // Згідно з документацією: не використовується для документа "Початок офлайн сесії"
+    // та наступного за ним документа
     if (data.prevDocHash) {
         parts.push(data.prevDocHash);
     }

@@ -18,8 +18,6 @@ export interface OfflineSessionData {
     totalDuration?: number;
     /** Наступний локальний номер в офлайн сесії */
     nextLocalNum?: number;
-    /** Ознака відкликання останнього онлайн документа */
-    revokeLastOnlineDoc?: boolean;
 }
 
 /**
@@ -64,6 +62,8 @@ export enum OfflineDocumentType {
     Z_REPORT = 'Z_REPORT',
     /** Чек повернення */
     RETURN_CHECK = 'RETURN_CHECK',
+    /** Відкриття зміни */
+    OPEN_SHIFT = 'OPEN_SHIFT',
     /** Закриття зміни */
     CLOSE_SHIFT = 'CLOSE_SHIFT',
 }
