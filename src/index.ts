@@ -93,7 +93,6 @@ export {
 
 // Offline utilities
 export {
-    crc32,
     sha256,
     calculateControlNumber,
     formatOfflineFiscalNumber,

@@ -189,6 +189,8 @@ export class OfflineDocumentBuilder extends PRROBuilder {
 
         const xml = buildXml('CHECK', 'CHECKHEAD', head);
 
+        const docHash = sha256(xml);
+        this.lastDocHash = docHash;
         const offlineDoc: OfflineDocument = {
             docType: OfflineDocumentType.OPEN_SHIFT,
             xml,
@@ -241,7 +243,8 @@ export class OfflineDocumentBuilder extends PRROBuilder {
         };
 
         const xml = buildXml('CHECK', 'CHECKHEAD', head);
-
+        const docHash = sha256(xml);
+        this.lastDocHash = docHash;
         const offlineDoc: OfflineDocument = {
             docType: OfflineDocumentType.CLOSE_SHIFT,
             xml,
@@ -415,27 +418,97 @@ export class OfflineDocumentBuilder extends PRROBuilder {
             controlNumber,
         );
 
-        const onlineBuilder = new OnlineDocumentBuilder(this.shift);
-        onlineBuilder.setTestMode(this.testing);
-        const zReport = onlineBuilder.buildZReport(data);
+        const head = {
+            UID: meta.uid,
+            TIN: this.shift.tin,
+            ORGNM: this.shift.orgName,
+            POINTNM: this.shift.taxObjectsName,
+            POINTADDR: this.shift.address,
+            ORDERDATE: meta.date,
+            ORDERTIME: meta.time,
+            ORDERNUM: this.shift.orderNum,
+            CASHDESKNUM: this.shift.numLocal,
+            CASHREGISTERNUM: this.shift.numFiscal,
+            CASHIER: this.shift.cashier,
+            VER: 1,
+            ORDERTAXNUM: fiscalNumber,
+            OFFLINE: true,
+            ...(this.lastDocHash && !this.isFirstFinancialDoc && { PREVDOCHASH: this.lastDocHash }),
+            ...(this.testing && { TESTING: 1 }),
+        };
 
-        const xmlWithOfflineFields = zReport.xml.replace(
-            '<CASHREGISTERNUM>',
-            `<ORDERTAXNUM>${fiscalNumber}</ORDERTAXNUM><OFFLINE>true</OFFLINE>` +
-                (this.lastDocHash && !this.isFirstFinancialDoc
-                    ? `<PREVDOCHASH>${this.lastDocHash}</PREVDOCHASH>`
-                    : '') +
-                '<CASHREGISTERNUM>',
-        );
+        const realizPayforms = data.paymentForms?.map((form, index) => ({
+            ROWNUM: (index + 1).toString(),
+            PAYFORMCD: form.payFormCode,
+            PAYFORMNM: form.payFormName,
+            SUM: form.sum.toFixed(2),
+        }));
 
-        const docHash = sha256(xmlWithOfflineFields);
+        const realizTaxes = data.taxes?.map((tax, index) => ({
+            ROWNUM: (index + 1).toString(),
+            TYPE: tax.type,
+            NAME: tax.name,
+            LETTER: tax.letter,
+            PRC: tax.rate.toFixed(2),
+            TURNOVER: tax.turnover.toFixed(2),
+            SUM: tax.sum.toFixed(2),
+        }));
+
+        const realizSection = {
+            SUM: data.totalSales.toFixed(2),
+            ORDERSCNT: data.salesCount,
+            ...(realizPayforms && realizPayforms.length > 0 && { PAYFORMS: realizPayforms }),
+            ...(realizTaxes && realizTaxes.length > 0 && { TAXES: realizTaxes }),
+        };
+
+        const refundPayforms = data.refundPaymentForms?.map((form, index) => ({
+            ROWNUM: (index + 1).toString(),
+            PAYFORMCD: form.payFormCode,
+            PAYFORMNM: form.payFormName,
+            SUM: form.sum.toFixed(2),
+        }));
+
+        const refundTaxes = data.refundTaxes?.map((tax, index) => ({
+            ROWNUM: (index + 1).toString(),
+            TYPE: tax.type,
+            NAME: tax.name,
+            LETTER: tax.letter,
+            PRC: tax.rate.toFixed(2),
+            TURNOVER: tax.turnover.toFixed(2),
+            SUM: tax.sum.toFixed(2),
+        }));
+
+        const returnSection =
+            data.totalRefunds > 0
+                ? {
+                      SUM: data.totalRefunds.toFixed(2),
+                      ORDERSCNT: data.refundsCount,
+                      ...(refundPayforms && refundPayforms.length > 0 && { PAYFORMS: refundPayforms }),
+                      ...(refundTaxes && refundTaxes.length > 0 && { TAXES: refundTaxes }),
+                  }
+                : undefined;
+
+        const bodySection = {
+            SERVICEINPUT: (data.serviceInput || 0).toFixed(2),
+            SERVICEOUTPUT: (data.serviceOutput || 0).toFixed(2),
+        };
+
+        const bodySections = {
+            ZREPREALIZ: realizSection,
+            ...(returnSection && { ZREPRETURN: returnSection }),
+            ZREPBODY: bodySection,
+        };
+
+        const xml = buildXml('ZREP', 'ZREPHEAD', head, bodySections);
+
+        const docHash = sha256(xml);
         this.lastDocHash = docHash;
         this.isFirstFinancialDoc = false;
 
         const offlineDoc: OfflineDocument = {
             docType: OfflineDocumentType.Z_REPORT,
-            xml: xmlWithOfflineFields,
-            uid: zReport.uid,
+            xml,
+            uid: meta.uid,
             localNum: localNum || this.shift.orderNum,
             offlineLocalNum: this.offlineSession!.nextLocalNum!,
             fiscalNum: fiscalNumber,
@@ -447,7 +520,7 @@ export class OfflineDocumentBuilder extends PRROBuilder {
 
         this.offlineDocuments.push(offlineDoc);
 
-        return { xml: xmlWithOfflineFields, uid: zReport.uid };
+        return { xml, uid: meta.uid };
     }
 
     getOfflineDocuments(): OfflineDocument[] {

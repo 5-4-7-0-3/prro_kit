@@ -20,6 +20,7 @@ export class OnlineDocumentBuilder extends PRROBuilder {
         const head = {
             UID: meta.uid,
             TIN: this.shift.tin,
+            ...(this.shift.ipn && { IPN: this.shift.ipn }),
             ORGNM: this.shift.orgName,
             POINTNM: this.shift.taxObjectsName,
             POINTADDR: this.shift.address,
@@ -40,10 +41,21 @@ export class OnlineDocumentBuilder extends PRROBuilder {
             SUM: form.sum.toFixed(2),
         }));
 
+        const realizTaxes = data.taxes?.map((tax, index) => ({
+            ROWNUM: (index + 1).toString(),
+            TYPE: tax.type,
+            NAME: tax.name,
+            LETTER: tax.letter,
+            PRC: tax.rate.toFixed(2),
+            TURNOVER: tax.turnover.toFixed(2),
+            SUM: tax.sum.toFixed(2),
+        }));
+
         const realizSection = {
             SUM: data.totalSales.toFixed(2),
             ORDERSCNT: data.salesCount,
             ...(realizPayforms && realizPayforms.length > 0 && { PAYFORMS: realizPayforms }),
+            ...(realizTaxes && realizTaxes.length > 0 && { TAXES: realizTaxes }),
         };
 
         const refundPayforms = data.refundPaymentForms?.map((form, index) => ({
@@ -53,12 +65,23 @@ export class OnlineDocumentBuilder extends PRROBuilder {
             SUM: form.sum.toFixed(2),
         }));
 
+        const refundTaxes = data.refundTaxes?.map((tax, index) => ({
+            ROWNUM: (index + 1).toString(),
+            TYPE: tax.type,
+            NAME: tax.name,
+            LETTER: tax.letter,
+            PRC: tax.rate.toFixed(2),
+            TURNOVER: tax.turnover.toFixed(2),
+            SUM: tax.sum.toFixed(2),
+        }));
+
         const returnSection =
             data.totalRefunds > 0
                 ? {
                       SUM: data.totalRefunds.toFixed(2),
                       ORDERSCNT: data.refundsCount,
                       ...(refundPayforms && refundPayforms.length > 0 && { PAYFORMS: refundPayforms }),
+                      ...(refundTaxes && refundTaxes.length > 0 && { TAXES: refundTaxes }),
                   }
                 : undefined;
 

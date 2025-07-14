@@ -102,26 +102,29 @@ export interface PaymentFormData {
     sum: number;
 }
 
+export interface TaxData {
+    type: number; // Тип податку (0 - ПДВ, 1 - акциз, тощо)
+    name: string; // Назва податку
+    letter: string; // Літера податку (А, Б, В, Г, Д)
+    rate: number; // Ставка податку у відсотках
+    turnover: number; // Оборот по податку
+    sum: number; // Сума податку
+}
+
 /**
  * Дані для Z-звіту
  */
 export interface ZReportData {
-    /** Загальна сума реалізації */
-    totalSales: number;
-    /** Загальна сума повернень */
-    totalRefunds: number;
-    /** Кількість чеків продажу */
-    salesCount: number;
-    /** Кількість чеків повернення */
-    refundsCount: number;
-    /** Службове внесення */
-    serviceInput?: number;
-    /** Службова видача */
-    serviceOutput?: number;
-    /** Розподіл по формах оплати */
-    paymentForms?: PaymentFormData[];
-    /** Розподіл по формах оплати для повернень */
-    refundPaymentForms?: PaymentFormData[];
+    totalSales: number; // Загальна сума продажів
+    salesCount: number; // Кількість продажів
+    totalRefunds: number; // Загальна сума повернень
+    refundsCount: number; // Кількість повернень
+    serviceInput?: number; // Службове внесення
+    serviceOutput?: number; // Службове винесення
+    paymentForms?: PaymentFormData[]; // Форми оплати для продажів
+    taxes?: TaxData[]; // Податки для продажів
+    refundPaymentForms?: PaymentFormData[]; // Форми оплати для повернень
+    refundTaxes?: TaxData[]; // Податки для повернень
 }
 
 /**

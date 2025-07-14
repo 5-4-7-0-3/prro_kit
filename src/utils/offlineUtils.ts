@@ -1,36 +1,6 @@
 import * as crypto from 'crypto';
+import { crc32 } from 'crc';
 import { ControlNumberData, OfflineSessionStats } from '../core/offline-types';
-
-/**
- * CRC32 таблиця для швидкого обчислення
- */
-const CRC32_TABLE: number[] = (() => {
-    const table: number[] = [];
-    for (let n = 0; n < 256; n++) {
-        let c = n;
-        for (let k = 0; k < 8; k++) {
-            c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
-        }
-        table[n] = c >>> 0;
-    }
-    return table;
-})();
-
-/**
- * Обчислює CRC32 контрольну суму
- * @param str - Рядок для обчислення
- * @returns CRC32 контрольна сума
- */
-export function crc32(str: string): number {
-    let crc = 0xffffffff;
-    const buffer = Buffer.from(str, 'utf-8');
-
-    for (let i = 0; i < buffer.length; i++) {
-        crc = CRC32_TABLE[(crc ^ buffer[i]) & 0xff] ^ (crc >>> 8);
-    }
-
-    return (crc ^ 0xffffffff) >>> 0;
-}
 
 /**
  * Обчислює SHA-256 геш
@@ -71,16 +41,17 @@ export function calculateControlNumber(data: ControlNumberData): number {
 
     const str = parts.join(',');
     const checksum = crc32(str);
+    const HEX_RADIX = 16;
+    const CRC32_LENGTH = 8;
+    const DIVIDER_TO_GET_LAST_FOUR_DIGITS = 10000;
+    const DEFAULT_CONTROL_CODE = 1;
 
-    // Беремо 4 молодші розряди
-    let controlNumber = checksum % 10000;
+    const crc32String = checksum.toString(HEX_RADIX);
+    const fullCrc32String = '00000000'.substring(0, CRC32_LENGTH - crc32String.length) + crc32String;
+    const unsignedInt = Buffer.from(fullCrc32String, 'hex').readUInt32LE();
+    const lastFourDigits = unsignedInt % DIVIDER_TO_GET_LAST_FOUR_DIGITS;
 
-    // Контрольне число не може дорівнювати 0
-    if (controlNumber === 0) {
-        controlNumber = 1;
-    }
-
-    return controlNumber;
+    return lastFourDigits || DEFAULT_CONTROL_CODE;
 }
 
 /**
