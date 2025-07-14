@@ -50,7 +50,7 @@ export class OfflineDocumentBuilder extends PRROBuilder {
             offlineSeed: this.offlineSession!.offlineSeed,
             date: meta.date,
             time: meta.time,
-            localNum: this.offlineSession!.nextLocalNum!,
+            localNum: this.shift.orderNum,
             fiscalNum: this.shift.numFiscal,
             localRegNum: String(this.shift.numLocal),
         };
@@ -105,7 +105,7 @@ export class OfflineDocumentBuilder extends PRROBuilder {
             offlineSeed: this.offlineSession!.offlineSeed,
             date: meta.date,
             time: meta.time,
-            localNum: this.offlineSession!.nextLocalNum!,
+            localNum: this.shift.orderNum,
             fiscalNum: this.shift.numFiscal,
             localRegNum: String(this.shift.numLocal),
         };
@@ -157,7 +157,7 @@ export class OfflineDocumentBuilder extends PRROBuilder {
             offlineSeed: this.offlineSession!.offlineSeed,
             date: meta.date,
             time: meta.time,
-            localNum: this.offlineSession!.nextLocalNum!,
+            localNum: this.shift.orderNum,
             fiscalNum: this.shift.numFiscal,
             localRegNum: String(this.shift.numLocal),
         };
@@ -209,7 +209,7 @@ export class OfflineDocumentBuilder extends PRROBuilder {
             offlineSeed: this.offlineSession!.offlineSeed,
             date: meta.date,
             time: meta.time,
-            localNum: this.offlineSession!.nextLocalNum!,
+            localNum: this.shift.orderNum,
             fiscalNum: this.shift.numFiscal,
             localRegNum: String(this.shift.numLocal),
             // Для документа "Закриття зміни" НЕ використовуємо prevDocHash
@@ -277,7 +277,7 @@ export class OfflineDocumentBuilder extends PRROBuilder {
             offlineSeed: this.offlineSession.offlineSeed,
             date: meta.date,
             time: meta.time,
-            localNum: this.offlineSession!.nextLocalNum!, // Використовуємо переданий localNum або orderNum
+            localNum: this.shift.orderNum, // Використовуємо переданий localNum або orderNum
             fiscalNum: this.shift.numFiscal,
             localRegNum: String(this.shift.numLocal),
             totalAmount,
@@ -343,7 +343,7 @@ export class OfflineDocumentBuilder extends PRROBuilder {
             offlineSeed: this.offlineSession.offlineSeed,
             date: meta.date,
             time: meta.time,
-            localNum: this.offlineSession!.nextLocalNum!,
+            localNum: this.shift.orderNum,
             fiscalNum: this.shift.numFiscal,
             localRegNum: String(this.shift.numLocal),
             totalAmount,
@@ -402,7 +402,7 @@ export class OfflineDocumentBuilder extends PRROBuilder {
             offlineSeed: this.offlineSession.offlineSeed,
             date: meta.date,
             time: meta.time,
-            localNum: this.offlineSession!.nextLocalNum!,
+            localNum: this.shift.orderNum,
             fiscalNum: this.shift.numFiscal,
             localRegNum: String(this.shift.numLocal),
             ...(this.lastDocHash && !this.isFirstFinancialDoc && { prevDocHash: this.lastDocHash }),
