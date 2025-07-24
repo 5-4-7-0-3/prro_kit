@@ -31,7 +31,7 @@ export class OnlineDocumentBuilder extends PRROBuilder {
             CASHREGISTERNUM: this.shift.numFiscal,
             CASHIER: this.shift.cashier,
             VER: 1,
-            ...(this.testing && { TESTING: 1 }),
+            ...(this.testing && { TESTING: true }),
         };
 
         const realizPayforms = data.paymentForms?.map((form, index) => ({

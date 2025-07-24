@@ -17,7 +17,6 @@ export function sha256(data: string | Buffer): string {
  * @returns Контрольне число (4 молодші розряди CRC32)
  */
 export function calculateControlNumber(data: ControlNumberData): number {
-    // Формуємо рядок для CRC32 згідно з документацією
     const parts: string[] = [
         data.offlineSeed.toString(),
         data.date,
@@ -27,14 +26,10 @@ export function calculateControlNumber(data: ControlNumberData): number {
         data.localRegNum.toString(),
     ];
 
-    // Додаємо суму якщо є (тільки для чеків класу "Чек")
     if (data.totalAmount !== undefined && data.totalAmount > 0) {
         parts.push(data.totalAmount.toFixed(2));
     }
 
-    // Додаємо геш попереднього документа якщо є
-    // Згідно з документацією: не використовується для документа "Початок офлайн сесії"
-    // та наступного за ним документа
     if (data.prevDocHash) {
         parts.push(data.prevDocHash);
     }

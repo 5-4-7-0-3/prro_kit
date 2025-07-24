@@ -17,8 +17,9 @@ export class PRROBuilder {
      * Створює новий екземпляр білдера
      * @param shift - Дані зміни
      */
-    constructor(shift: ShiftData) {
+    constructor(shift: ShiftData, isTestMode: boolean = false) {
         this.shift = shift;
+        this.testing = isTestMode;
         this.validator = new PRROValidator();
 
         // Валідуємо дані зміни при створенні
@@ -64,7 +65,7 @@ export class PRROBuilder {
             CASHREGISTERNUM: this.shift.numFiscal,
             CASHIER: this.shift.cashier,
             VER: 1,
-            ...(this.testing && { TESTING: 1 }),
+            ...(this.testing && { TESTING: true }),
         };
 
         return {
@@ -99,7 +100,7 @@ export class PRROBuilder {
             CASHREGISTERNUM: this.shift.numFiscal,
             CASHIER: this.shift.cashier,
             VER: 1,
-            ...(this.testing && { TESTING: 1 }),
+            ...(this.testing && { TESTING: true }),
         };
 
         return {
@@ -178,7 +179,7 @@ export class PRROBuilder {
             CASHREGISTERNUM: this.shift.numFiscal,
             CASHIER: this.shift.cashier,
             VER: 1,
-            ...(this.testing && { TESTING: 1 }),
+            ...(this.testing && { TESTING: true }),
         };
 
         const paymentSection = [
@@ -266,7 +267,7 @@ export class PRROBuilder {
             ORDERRETNUM: originalFiscalNumber,
             CASHIER: this.shift.cashier,
             VER: 1,
-            ...(this.testing && { TESTING: 1 }),
+            ...(this.testing && { TESTING: true }),
         };
 
         const paymentSection = [

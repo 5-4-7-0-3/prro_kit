@@ -163,12 +163,11 @@ export function createOnlineBuilder(shift: ShiftData, testMode: boolean = false)
  * ```
  */
 export function createOfflineBuilder(
-    shift: ShiftData,
+    shiftData: ShiftData,
     offlineSession?: OfflineSessionData,
-    testMode: boolean = false,
+    isTestMode: boolean = false,
 ): OfflineDocumentBuilder {
-    const builder = new OfflineDocumentBuilder(shift, offlineSession);
-    return builder.setTestMode(testMode);
+    return new OfflineDocumentBuilder(shiftData, offlineSession, isTestMode);
 }
 
 /**

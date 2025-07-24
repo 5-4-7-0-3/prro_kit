@@ -17,7 +17,6 @@ import {
     calculateOfflineSessionStats,
     canContinueOfflineSession,
 } from '../utils/offlineUtils';
-import { OnlineDocumentBuilder } from './online-builder';
 
 /**
  * Білдер для створення офлайн PRRO документів
@@ -26,12 +25,11 @@ import { OnlineDocumentBuilder } from './online-builder';
 export class OfflineDocumentBuilder extends PRROBuilder {
     private offlineSession?: OfflineSessionData;
     private offlineDocuments: OfflineDocument[] = [];
-    private lastDocHash?: string;
-    private isFirstFinancialDoc = true;
 
-    constructor(shift: ShiftData, offlineSession?: OfflineSessionData) {
+    constructor(shift: ShiftData, offlineSession?: OfflineSessionData, isTestMode: boolean = false) {
         super(shift);
         this.offlineSession = offlineSession;
+        this.setTestMode(isTestMode);
     }
 
     setOfflineSession(session: OfflineSessionData): this {
@@ -44,7 +42,7 @@ export class OfflineDocumentBuilder extends PRROBuilder {
     }
 
     buildOfflineBegin(revokeLastOnlineDoc: boolean = false): XMLDocumentResult {
-        const meta = createMeta({ isTestMode: this.testing });
+        const meta = createMeta();
 
         const controlNumberData: ControlNumberData = {
             offlineSeed: this.offlineSession!.offlineSeed,
@@ -73,12 +71,11 @@ export class OfflineDocumentBuilder extends PRROBuilder {
             ORDERNUM: this.shift.orderNum,
             CASHDESKNUM: this.shift.numLocal,
             CASHREGISTERNUM: this.shift.numFiscal,
+            REVOKELASTONLINEDOC: revokeLastOnlineDoc ? 'true' : 'false',
             CASHIER: this.shift.cashier,
             VER: 1,
             ORDERTAXNUM: fiscalNumber,
             OFFLINE: true,
-            ...(revokeLastOnlineDoc && { REVOKED: true }),
-            ...(this.testing && { TESTING: 1 }),
         };
 
         const xml = buildXml('CHECK', 'CHECKHEAD', head);
@@ -93,13 +90,12 @@ export class OfflineDocumentBuilder extends PRROBuilder {
         };
 
         this.offlineDocuments.push(offlineDoc);
-        this.isFirstFinancialDoc = true;
 
         return { xml, uid: meta.uid };
     }
 
-    buildOfflineEnd(): XMLDocumentResult {
-        const meta = createMeta({ isTestMode: this.testing });
+    buildOfflineEnd(prevDocHash?: string): XMLDocumentResult {
+        const meta = createMeta();
 
         const controlNumberData: ControlNumberData = {
             offlineSeed: this.offlineSession!.offlineSeed,
@@ -108,6 +104,7 @@ export class OfflineDocumentBuilder extends PRROBuilder {
             localNum: this.shift.orderNum,
             fiscalNum: this.shift.numFiscal,
             localRegNum: String(this.shift.numLocal),
+            prevDocHash,
         };
 
         const controlNumber = calculateControlNumber(controlNumberData);
@@ -132,7 +129,7 @@ export class OfflineDocumentBuilder extends PRROBuilder {
             VER: 1,
             ORDERTAXNUM: fiscalNumber,
             OFFLINE: true,
-            ...(this.testing && { TESTING: 1 }),
+            PREVDOCHASH: prevDocHash,
         };
 
         const xml = buildXml('CHECK', 'CHECKHEAD', head);
@@ -150,8 +147,8 @@ export class OfflineDocumentBuilder extends PRROBuilder {
         return { xml, uid: meta.uid };
     }
 
-    buildOfflineOpenTillShift(): XMLDocumentResult {
-        const meta = createMeta({ isTestMode: this.testing });
+    buildOfflineOpenTillShift(prevDocHash?: string): XMLDocumentResult {
+        const meta = createMeta();
 
         const controlNumberData: ControlNumberData = {
             offlineSeed: this.offlineSession!.offlineSeed,
@@ -160,6 +157,7 @@ export class OfflineDocumentBuilder extends PRROBuilder {
             localNum: this.shift.orderNum,
             fiscalNum: this.shift.numFiscal,
             localRegNum: String(this.shift.numLocal),
+            prevDocHash,
         };
 
         const controlNumber = calculateControlNumber(controlNumberData);
@@ -184,13 +182,13 @@ export class OfflineDocumentBuilder extends PRROBuilder {
             VER: 1,
             ORDERTAXNUM: fiscalNumber,
             OFFLINE: true,
-            ...(this.testing && { TESTING: 1 }),
+            ...(this.testing && { TESTING: true }),
+            PREVDOCHASH: prevDocHash,
         };
 
         const xml = buildXml('CHECK', 'CHECKHEAD', head);
 
         const docHash = sha256(xml);
-        this.lastDocHash = docHash;
         const offlineDoc: OfflineDocument = {
             docType: OfflineDocumentType.OPEN_SHIFT,
             xml,
@@ -198,14 +196,15 @@ export class OfflineDocumentBuilder extends PRROBuilder {
             localNum: this.shift.orderNum,
             offlineLocalNum: this.offlineSession!.nextLocalNum!,
             createdAt: new Date(),
+            docHash,
         };
 
         this.offlineDocuments.push(offlineDoc);
         return { xml, uid: meta.uid };
     }
 
-    buildOfflineCloseTillShift(): XMLDocumentResult {
-        const meta = createMeta({ isTestMode: this.testing });
+    buildOfflineCloseTillShift(prevDocHash?: string): XMLDocumentResult {
+        const meta = createMeta();
 
         const controlNumberData: ControlNumberData = {
             offlineSeed: this.offlineSession!.offlineSeed,
@@ -214,7 +213,7 @@ export class OfflineDocumentBuilder extends PRROBuilder {
             localNum: this.shift.orderNum,
             fiscalNum: this.shift.numFiscal,
             localRegNum: String(this.shift.numLocal),
-            // Для документа "Закриття зміни" НЕ використовуємо prevDocHash
+            prevDocHash,
         };
 
         const controlNumber = calculateControlNumber(controlNumberData);
@@ -239,12 +238,12 @@ export class OfflineDocumentBuilder extends PRROBuilder {
             VER: 1,
             ORDERTAXNUM: fiscalNumber,
             OFFLINE: true,
-            ...(this.testing && { TESTING: 1 }),
+            PREVDOCHASH: prevDocHash,
+            ...(this.testing && { TESTING: true }),
         };
 
         const xml = buildXml('CHECK', 'CHECKHEAD', head);
         const docHash = sha256(xml);
-        this.lastDocHash = docHash;
         const offlineDoc: OfflineDocument = {
             docType: OfflineDocumentType.CLOSE_SHIFT,
             xml,
@@ -252,15 +251,31 @@ export class OfflineDocumentBuilder extends PRROBuilder {
             localNum: this.shift.orderNum,
             offlineLocalNum: this.offlineSession!.nextLocalNum!,
             createdAt: new Date(),
+            docHash,
         };
 
         this.offlineDocuments.push(offlineDoc);
         return { xml, uid: meta.uid };
     }
 
-    buildOfflineReceipt(lines: ReceiptLine[], payment: PaymentData, localNum?: number): XMLDocumentResult {
+    buildOfflineReceiptDocument(
+        lines: ReceiptLine[],
+        payment: PaymentData,
+        options: {
+            isRefund?: boolean;
+            originalFiscalNumber?: string;
+            localNum?: number;
+            prevDocHash?: string;
+        } = {},
+    ): XMLDocumentResult {
+        const { isRefund = false, originalFiscalNumber, localNum, prevDocHash } = options;
+
         if (!this.offlineSession) {
-            throw new BuilderError('Offline session data is required for offline receipt', 'OfflineDocumentBuilder');
+            throw new BuilderError('Offline session data is required for offline document', 'OfflineDocumentBuilder');
+        }
+
+        if (isRefund && !originalFiscalNumber) {
+            throw new BuilderError('Original fiscal number is required for refund', 'OfflineDocumentBuilder');
         }
 
         const stats = calculateOfflineSessionStats(
@@ -273,19 +288,18 @@ export class OfflineDocumentBuilder extends PRROBuilder {
             throw new BuilderError('Offline session time limit exceeded', 'OfflineDocumentBuilder');
         }
 
-        const meta = createMeta({ isTestMode: this.testing });
+        const meta = createMeta();
         const totalAmount = lines.reduce((sum, line) => sum + line.COST, 0);
 
         const controlNumberData: ControlNumberData = {
             offlineSeed: this.offlineSession.offlineSeed,
             date: meta.date,
             time: meta.time,
-            localNum: this.shift.orderNum, // Використовуємо переданий localNum або orderNum
+            localNum: this.shift.orderNum,
             fiscalNum: this.shift.numFiscal,
             localRegNum: String(this.shift.numLocal),
             totalAmount,
-            // Згідно з документацією: геш попереднього документа НЕ використовується для першого фінансового документа
-            ...(this.lastDocHash && !this.isFirstFinancialDoc && { prevDocHash: this.lastDocHash }),
+            prevDocHash,
         };
 
         const controlNumber = calculateControlNumber(controlNumberData);
@@ -295,38 +309,50 @@ export class OfflineDocumentBuilder extends PRROBuilder {
             controlNumber,
         );
 
-        const receipt = super.buildReceipt(lines, payment);
+        let documentResult: XMLDocumentResult;
+        if (isRefund) {
+            documentResult = super.buildRefund(lines, payment, originalFiscalNumber!);
+        } else {
+            documentResult = super.buildReceipt(lines, payment);
+        }
 
-        const xmlWithOfflineFields = receipt.xml.replace(
-            '<CASHREGISTERNUM>',
-            `<ORDERTAXNUM>${fiscalNumber}</ORDERTAXNUM><OFFLINE>true</OFFLINE>` +
-                (this.lastDocHash && !this.isFirstFinancialDoc
-                    ? `<PREVDOCHASH>${this.lastDocHash}</PREVDOCHASH>`
-                    : '') +
-                '<CASHREGISTERNUM>',
+        const xmlWithOfflineFields = documentResult.xml.replace(
+            '<VER>1</VER>',
+            `<VER>1</VER><ORDERTAXNUM>${fiscalNumber}</ORDERTAXNUM><OFFLINE>true</OFFLINE>` +
+                (prevDocHash ? `<PREVDOCHASH>${prevDocHash}</PREVDOCHASH>` : ''),
         );
 
         const docHash = sha256(xmlWithOfflineFields);
-        this.lastDocHash = docHash;
-        this.isFirstFinancialDoc = false;
 
         const offlineDoc: OfflineDocument = {
-            docType: OfflineDocumentType.CHECK,
+            docType: isRefund ? OfflineDocumentType.RETURN_CHECK : OfflineDocumentType.CHECK,
             xml: xmlWithOfflineFields,
-            uid: receipt.uid,
+            uid: documentResult.uid,
             localNum: localNum || this.shift.orderNum,
             offlineLocalNum: this.offlineSession!.nextLocalNum!,
             fiscalNum: fiscalNumber,
             controlNumber,
-            prevDocHash: this.lastDocHash,
+            prevDocHash,
             docHash,
             createdAt: new Date(),
             totalAmount,
         };
 
         this.offlineDocuments.push(offlineDoc);
+        return { xml: xmlWithOfflineFields, uid: documentResult.uid };
+    }
 
-        return { xml: xmlWithOfflineFields, uid: receipt.uid };
+    buildOfflineReceipt(
+        lines: ReceiptLine[],
+        payment: PaymentData,
+        localNum?: number,
+        prevDocHash?: string,
+    ): XMLDocumentResult {
+        return this.buildOfflineReceiptDocument(lines, payment, {
+            isRefund: false,
+            localNum,
+            prevDocHash,
+        });
     }
 
     buildOfflineRefund(
@@ -334,72 +360,22 @@ export class OfflineDocumentBuilder extends PRROBuilder {
         payment: PaymentData,
         originalFiscalNumber: string,
         localNum?: number,
+        prevDocHash?: string,
     ): XMLDocumentResult {
-        if (!this.offlineSession) {
-            throw new BuilderError('Offline session data is required for offline refund', 'OfflineDocumentBuilder');
-        }
-
-        const meta = createMeta({ isTestMode: this.testing });
-        const totalAmount = lines.reduce((sum, line) => sum + line.COST, 0);
-
-        const controlNumberData: ControlNumberData = {
-            offlineSeed: this.offlineSession.offlineSeed,
-            date: meta.date,
-            time: meta.time,
-            localNum: this.shift.orderNum,
-            fiscalNum: this.shift.numFiscal,
-            localRegNum: String(this.shift.numLocal),
-            totalAmount,
-            ...(this.lastDocHash && !this.isFirstFinancialDoc && { prevDocHash: this.lastDocHash }),
-        };
-
-        const controlNumber = calculateControlNumber(controlNumberData);
-        const fiscalNumber = formatOfflineFiscalNumber(
-            this.offlineSession.offlineSessionId,
-            this.offlineSession!.nextLocalNum!,
-            controlNumber,
-        );
-
-        const refund = super.buildRefund(lines, payment, originalFiscalNumber);
-
-        const xmlWithOfflineFields = refund.xml.replace(
-            '<CASHREGISTERNUM>',
-            `<ORDERTAXNUM>${fiscalNumber}</ORDERTAXNUM><OFFLINE>true</OFFLINE>` +
-                (this.lastDocHash && !this.isFirstFinancialDoc
-                    ? `<PREVDOCHASH>${this.lastDocHash}</PREVDOCHASH>`
-                    : '') +
-                '<CASHREGISTERNUM>',
-        );
-
-        const docHash = sha256(xmlWithOfflineFields);
-        this.lastDocHash = docHash;
-        this.isFirstFinancialDoc = false;
-
-        const offlineDoc: OfflineDocument = {
-            docType: OfflineDocumentType.RETURN_CHECK,
-            xml: xmlWithOfflineFields,
-            uid: refund.uid,
-            localNum: localNum || this.shift.orderNum,
-            offlineLocalNum: this.offlineSession!.nextLocalNum!,
-            fiscalNum: fiscalNumber,
-            controlNumber,
-            prevDocHash: this.lastDocHash,
-            docHash,
-            createdAt: new Date(),
-            totalAmount,
-        };
-
-        this.offlineDocuments.push(offlineDoc);
-
-        return { xml: xmlWithOfflineFields, uid: refund.uid };
+        return this.buildOfflineReceiptDocument(lines, payment, {
+            isRefund: true,
+            originalFiscalNumber,
+            localNum,
+            prevDocHash,
+        });
     }
 
-    buildOfflineZReport(data: ZReportData, localNum?: number): XMLDocumentResult {
+    buildOfflineZReport(data: ZReportData, localNum?: number, prevDocHash?: string): XMLDocumentResult {
         if (!this.offlineSession) {
             throw new BuilderError('Offline session data is required for offline Z-report', 'OfflineDocumentBuilder');
         }
 
-        const meta = createMeta({ isTestMode: this.testing });
+        const meta = createMeta();
 
         const controlNumberData: ControlNumberData = {
             offlineSeed: this.offlineSession.offlineSeed,
@@ -408,7 +384,7 @@ export class OfflineDocumentBuilder extends PRROBuilder {
             localNum: this.shift.orderNum,
             fiscalNum: this.shift.numFiscal,
             localRegNum: String(this.shift.numLocal),
-            ...(this.lastDocHash && !this.isFirstFinancialDoc && { prevDocHash: this.lastDocHash }),
+            prevDocHash,
         };
 
         const controlNumber = calculateControlNumber(controlNumberData);
@@ -433,8 +409,8 @@ export class OfflineDocumentBuilder extends PRROBuilder {
             VER: 1,
             ORDERTAXNUM: fiscalNumber,
             OFFLINE: true,
-            ...(this.lastDocHash && !this.isFirstFinancialDoc && { PREVDOCHASH: this.lastDocHash }),
-            ...(this.testing && { TESTING: 1 }),
+            PREVDOCHASH: prevDocHash,
+            ...(this.testing && { TESTING: true }),
         };
 
         const realizPayforms = data.paymentForms?.map((form, index) => ({
@@ -502,8 +478,6 @@ export class OfflineDocumentBuilder extends PRROBuilder {
         const xml = buildXml('ZREP', 'ZREPHEAD', head, bodySections);
 
         const docHash = sha256(xml);
-        this.lastDocHash = docHash;
-        this.isFirstFinancialDoc = false;
 
         const offlineDoc: OfflineDocument = {
             docType: OfflineDocumentType.Z_REPORT,
@@ -513,13 +487,12 @@ export class OfflineDocumentBuilder extends PRROBuilder {
             offlineLocalNum: this.offlineSession!.nextLocalNum!,
             fiscalNum: fiscalNumber,
             controlNumber,
-            prevDocHash: this.lastDocHash,
+            prevDocHash,
             docHash,
             createdAt: new Date(),
         };
 
         this.offlineDocuments.push(offlineDoc);
-
         return { xml, uid: meta.uid };
     }
 
@@ -529,8 +502,6 @@ export class OfflineDocumentBuilder extends PRROBuilder {
 
     clearOfflineDocuments(): void {
         this.offlineDocuments = [];
-        this.lastDocHash = undefined;
-        this.isFirstFinancialDoc = true;
     }
 
     createOfflinePackages(maxPackageSize: number = 100): OfflinePackage[] {
